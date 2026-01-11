@@ -111,7 +111,7 @@ export default function Management() {
   }
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-8">
         
         <Tabs defaultValue="tickets">

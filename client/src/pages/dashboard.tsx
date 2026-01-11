@@ -30,7 +30,7 @@ export default function Dashboard() {
   const canAccessVip = userRole === "VIP" || userRole === "MOD" || userRole === "ADMIN";
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
       <div className="pb-2 px-2 sm:px-4">
         <BannerCarousel />
       </div>

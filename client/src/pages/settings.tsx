@@ -119,7 +119,7 @@ export default function Settings() {
   }
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
       <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
         
         <Card>

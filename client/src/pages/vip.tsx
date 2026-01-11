@@ -92,7 +92,7 @@ export default function VipPage() {
 
   if (!isVipOrHigher) {
     return (
-      <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+      <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
         <main className="max-w-4xl mx-auto px-4 py-12 pl-16 sm:pl-4">
           <Card className="text-center py-12">
             <CardContent>
@@ -109,7 +109,7 @@ export default function VipPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
       <main className="max-w-6xl mx-auto px-4 py-6 space-y-8">
         
         <div className="flex items-center gap-4">

@@ -37,7 +37,7 @@ export default function FilmPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
       {settings?.filmUrl ? (
         <>
           <div className="absolute left-4 top-16 z-[50]">
