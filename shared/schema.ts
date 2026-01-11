@@ -200,3 +200,33 @@ export const insertBannerSchema = createInsertSchema(banners).pick({
 
 export type InsertBanner = z.infer<typeof insertBannerSchema>;
 export type Banner = typeof banners.$inferSelect;
+
+export const settings = pgTable("settings", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+});
+
+export type Setting = typeof settings.$inferSelect;
+
+export const vipApps = pgTable("vip_apps", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  imageUrl: text("image_url").notNull(),
+  downloadUrl: text("download_url").notNull(),
+  version: text("version").notNull(),
+  size: text("size").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertVipAppSchema = createInsertSchema(vipApps).pick({
+  name: true,
+  description: true,
+  imageUrl: true,
+  downloadUrl: true,
+  version: true,
+  size: true,
+});
+
+export type InsertVipApp = z.infer<typeof insertVipAppSchema>;
+export type VipApp = typeof vipApps.$inferSelect;

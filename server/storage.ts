@@ -6,20 +6,12 @@ import {
   type Ticket, type InsertTicket,
   type Announcement, type InsertAnnouncement,
   type AdminCreateUser,
-  type Banner, type InsertBanner
+  type Banner, type InsertBanner,
+  type VipApp, type InsertVipApp,
+  users, events, chatGroups, chatMessages, tickets, announcements, banners, settings, vipApps
 } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-export interface VipApp {
-  id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  downloadUrl: string;
-  version: string;
-  size: string;
-  createdAt: Date;
-}
+import { db } from "./db";
+import { eq, desc, asc, and, sql, count } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
@@ -76,248 +68,52 @@ export interface IStorage {
   createBanner(banner: InsertBanner & { createdBy: string }): Promise<Banner>;
   updateBanner(id: string, updates: Partial<Banner>): Promise<Banner | undefined>;
   deleteBanner(id: string): Promise<boolean>;
+
+  seedInitialData(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-  private events: Map<string, Event>;
-  private chatGroups: Map<string, ChatGroup>;
-  private chatMessages: Map<string, ChatMessage>;
-  private tickets: Map<string, Ticket>;
-  private announcements: Map<string, Announcement>;
-  private settings: Map<string, string>;
-  private vipApps: Map<string, VipApp>;
-  private banners: Map<string, Banner>;
-
-  constructor() {
-    this.users = new Map();
-    this.events = new Map();
-    this.chatGroups = new Map();
-    this.chatMessages = new Map();
-    this.tickets = new Map();
-    this.announcements = new Map();
-    this.settings = new Map();
-    this.vipApps = new Map();
-    this.banners = new Map();
-
-    this.seedData();
-  }
-
-  private seedData() {
-    const adminId = randomUUID();
-    const adminUser: User = {
-      id: adminId,
-      username: "admin",
-      password: "admin123",
-      displayName: "Platform Admin",
-      role: "ADMIN",
-      avatar: null,
-      level: 50,
-      isOnline: true,
-      createdAt: new Date(),
-    };
-    this.users.set(adminId, adminUser);
-
-    const modId = randomUUID();
-    const modUser: User = {
-      id: modId,
-      username: "moderator",
-      password: "mod123",
-      displayName: "Moderatör",
-      role: "MOD",
-      avatar: null,
-      level: 30,
-      isOnline: true,
-      createdAt: new Date(),
-    };
-    this.users.set(modId, modUser);
-
-    const vipId = randomUUID();
-    const vipUser: User = {
-      id: vipId,
-      username: "vipuser",
-      password: "vip123",
-      displayName: "VIP Üye",
-      role: "VIP",
-      avatar: null,
-      level: 20,
-      isOnline: false,
-      createdAt: new Date(),
-    };
-    this.users.set(vipId, vipUser);
-
-    const group1Id = randomUUID();
-    this.chatGroups.set(group1Id, {
-      id: group1Id,
-      name: "Genel Sohbet",
-      description: "Herkese acik genel sohbet grubu",
-      requiredRole: "USER",
-      isPrivate: false,
-      participants: null,
-      createdBy: adminId,
-      createdAt: new Date(),
-    });
-
-    const group2Id = randomUUID();
-    this.chatGroups.set(group2Id, {
-      id: group2Id,
-      name: "VIP Lounge",
-      description: "VIP uyelere ozel sohbet alani",
-      requiredRole: "VIP",
-      isPrivate: false,
-      participants: null,
-      createdBy: adminId,
-      createdAt: new Date(),
-    });
-
-    const group3Id = randomUUID();
-    this.chatGroups.set(group3Id, {
-      id: group3Id,
-      name: "Yonetim Sohbeti",
-      description: "Admin ve moderator ozel sohbet alani",
-      requiredRole: "MOD",
-      isPrivate: false,
-      participants: null,
-      createdBy: adminId,
-      createdAt: new Date(),
-    });
-
-    const event1Id = randomUUID();
-    this.events.set(event1Id, {
-      id: event1Id,
-      title: "Haftalık PK Yarışması",
-      description: "Her hafta düzenlenen büyük PK etkinliği. Ödüller ve sürprizler sizi bekliyor!",
-      agencyName: "Elite Agency",
-      agencyLogo: null,
-      participant1Name: "StarQueen",
-      participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=StarQueen",
-      participant2Name: "GoldenKing",
-      participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=GoldenKing",
-      participantCount: 24,
-      participants: ["Ali", "Veli", "Ayşe", "Fatma", "Mehmet"],
-      scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-      isLive: false,
-      createdBy: adminId,
-      createdAt: new Date(),
-    });
-
-    const event2Id = randomUUID();
-    this.events.set(event2Id, {
-      id: event2Id,
-      title: "VIP Özel Yayın",
-      description: "VIP üyelere özel canlı yayın etkinliği",
-      agencyName: "Premium Productions",
-      agencyLogo: null,
-      participant1Name: "DiamondStar",
-      participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DiamondStar",
-      participant2Name: "RubyQueen",
-      participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=RubyQueen",
-      participantCount: 12,
-      participants: ["Crown", "Star", "Diamond"],
-      scheduledAt: new Date(Date.now() + 1 * 60 * 60 * 1000),
-      isLive: true,
-      createdBy: modId,
-      createdAt: new Date(),
-    });
-
-    const event3Id = randomUUID();
-    this.events.set(event3Id, {
-      id: event3Id,
-      title: "Yeni Başlayanlar Rehberi",
-      description: "Platform kullanımı hakkında bilgilendirme etkinliği",
-      agencyName: "Community Team",
-      agencyLogo: null,
-      participant1Name: "MentorPro",
-      participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=MentorPro",
-      participant2Name: "GuideAce",
-      participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=GuideAce",
-      participantCount: 45,
-      participants: ["Helper1", "Helper2", "Guide"],
-      scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
-      isLive: false,
-      createdBy: adminId,
-      createdAt: new Date(),
-    });
-
-    const announcementId = randomUUID();
-    this.announcements.set(announcementId, {
-      id: announcementId,
-      content: "Platforma hos geldiniz! Bu hafta ozel etkinlikler ve surprizler sizi bekliyor. VIP uyelik avantajlarindan yararlanin!",
-      isActive: true,
-      createdBy: adminId,
-      createdAt: new Date(),
-    });
-
-    const msg1Id = randomUUID();
-    this.chatMessages.set(msg1Id, {
-      id: msg1Id,
-      groupId: group1Id,
-      userId: adminId,
-      content: "Herkese merhaba! Platforma hoş geldiniz.",
-      createdAt: new Date(Date.now() - 60 * 60 * 1000),
-    });
-
-    const msg2Id = randomUUID();
-    this.chatMessages.set(msg2Id, {
-      id: msg2Id,
-      groupId: group1Id,
-      userId: modId,
-      content: "Merhaba! Herhangi bir sorunuz varsa yardımcı olmaktan mutluluk duyarım.",
-      createdAt: new Date(Date.now() - 30 * 60 * 1000),
-    });
-  }
+export class DatabaseStorage implements IStorage {
 
   async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { 
-      ...insertUser, 
-      id,
+    const [user] = await db.insert(users).values({
+      ...insertUser,
       role: "USER",
-      avatar: null,
       level: 1,
       isOnline: true,
-      createdAt: new Date(),
-    };
-    this.users.set(id, user);
+    }).returning();
     return user;
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return await db.select().from(users);
   }
 
   async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    const updatedUser = { ...user, ...updates };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const [updated] = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return updated || undefined;
   }
 
   async getEvents(): Promise<Event[]> {
-    return Array.from(this.events.values()).sort(
-      (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
-    );
+    return await db.select().from(events).orderBy(asc(events.scheduledAt));
   }
 
   async getEvent(id: string): Promise<Event | undefined> {
-    return this.events.get(id);
+    const [event] = await db.select().from(events).where(eq(events.id, id));
+    return event || undefined;
   }
 
   async createEvent(event: InsertEvent & { createdBy: string }): Promise<Event> {
-    const id = randomUUID();
-    const newEvent: Event = {
-      id,
+    const [newEvent] = await db.insert(events).values({
       title: event.title,
       description: event.description ?? null,
       agencyName: event.agencyName,
@@ -331,106 +127,83 @@ export class MemStorage implements IStorage {
       scheduledAt: event.scheduledAt,
       isLive: false,
       createdBy: event.createdBy,
-      createdAt: new Date(),
-    };
-    this.events.set(id, newEvent);
+    }).returning();
     return newEvent;
   }
 
   async getChatGroups(): Promise<ChatGroup[]> {
-    return Array.from(this.chatGroups.values());
+    return await db.select().from(chatGroups);
   }
 
   async getChatGroup(id: string): Promise<ChatGroup | undefined> {
-    return this.chatGroups.get(id);
+    const [group] = await db.select().from(chatGroups).where(eq(chatGroups.id, id));
+    return group || undefined;
   }
 
   async createChatGroup(group: InsertChatGroup & { createdBy: string; isPrivate?: boolean; participants?: string[] }): Promise<ChatGroup> {
-    const id = randomUUID();
-    const newGroup: ChatGroup = {
-      id,
+    const [newGroup] = await db.insert(chatGroups).values({
       name: group.name,
       description: group.description ?? null,
       requiredRole: "USER",
       isPrivate: group.isPrivate ?? false,
       participants: group.participants ?? null,
       createdBy: group.createdBy,
-      createdAt: new Date(),
-    };
-    this.chatGroups.set(id, newGroup);
+    }).returning();
     return newGroup;
   }
 
   async getChatMessages(groupId: string): Promise<ChatMessage[]> {
-    return Array.from(this.chatMessages.values())
-      .filter((msg) => msg.groupId === groupId)
-      .sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
+    return await db.select().from(chatMessages)
+      .where(eq(chatMessages.groupId, groupId))
+      .orderBy(asc(chatMessages.createdAt));
   }
 
   async createChatMessage(message: InsertChatMessage & { userId: string }): Promise<ChatMessage> {
-    const id = randomUUID();
-    const newMessage: ChatMessage = {
-      ...message,
-      id,
-      createdAt: new Date(),
-    };
-    this.chatMessages.set(id, newMessage);
+    const [newMessage] = await db.insert(chatMessages).values(message).returning();
     return newMessage;
   }
 
   async deleteChatMessage(id: string): Promise<boolean> {
-    return this.chatMessages.delete(id);
+    const result = await db.delete(chatMessages).where(eq(chatMessages.id, id));
+    return true;
   }
 
   async deleteGroupMessages(groupId: string): Promise<number> {
-    let count = 0;
-    const entries = Array.from(this.chatMessages.entries());
-    for (const [id, msg] of entries) {
-      if (msg.groupId === groupId) {
-        this.chatMessages.delete(id);
-        count++;
-      }
-    }
-    return count;
+    const result = await db.delete(chatMessages).where(eq(chatMessages.groupId, groupId));
+    return 0;
   }
 
   async deleteChatGroup(id: string): Promise<boolean> {
-    this.deleteGroupMessages(id);
-    return this.chatGroups.delete(id);
+    await this.deleteGroupMessages(id);
+    await db.delete(chatGroups).where(eq(chatGroups.id, id));
+    return true;
   }
 
   async getTickets(userId?: string): Promise<Ticket[]> {
-    let tickets = Array.from(this.tickets.values());
     if (userId) {
-      tickets = tickets.filter((t) => t.userId === userId);
+      return await db.select().from(tickets)
+        .where(eq(tickets.userId, userId))
+        .orderBy(desc(tickets.createdAt));
     }
-    return tickets.sort(
-      (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
-    );
+    return await db.select().from(tickets).orderBy(desc(tickets.createdAt));
   }
 
   async getTicket(id: string): Promise<Ticket | undefined> {
-    return this.tickets.get(id);
+    const [ticket] = await db.select().from(tickets).where(eq(tickets.id, id));
+    return ticket || undefined;
   }
 
   async createTicket(ticket: InsertTicket & { userId: string }): Promise<Ticket> {
-    const id = randomUUID();
-    const newTicket: Ticket = {
+    const [newTicket] = await db.insert(tickets).values({
       ...ticket,
-      id,
       status: "open",
-      createdAt: new Date(),
-    };
-    this.tickets.set(id, newTicket);
+    }).returning();
     return newTicket;
   }
 
   async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket | undefined> {
-    const ticket = this.tickets.get(id);
-    if (!ticket) return undefined;
-    const updatedTicket = { ...ticket, ...updates };
-    this.tickets.set(id, updatedTicket);
-    return updatedTicket;
+    const [updated] = await db.update(tickets).set(updates).where(eq(tickets.id, id)).returning();
+    return updated || undefined;
   }
 
   async getStats(): Promise<{
@@ -439,123 +212,115 @@ export class MemStorage implements IStorage {
     totalMessages: number;
     totalTickets: number;
   }> {
+    const [userCount] = await db.select({ count: count() }).from(users);
+    const [eventCount] = await db.select({ count: count() }).from(events);
+    const [messageCount] = await db.select({ count: count() }).from(chatMessages);
+    const [ticketCount] = await db.select({ count: count() }).from(tickets);
+    
     return {
-      totalUsers: this.users.size,
-      totalEvents: this.events.size,
-      totalMessages: this.chatMessages.size,
-      totalTickets: this.tickets.size,
+      totalUsers: userCount?.count ?? 0,
+      totalEvents: eventCount?.count ?? 0,
+      totalMessages: messageCount?.count ?? 0,
+      totalTickets: ticketCount?.count ?? 0,
     };
   }
 
   async getAnnouncements(): Promise<Announcement[]> {
-    return Array.from(this.announcements.values())
-      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+    return await db.select().from(announcements).orderBy(desc(announcements.createdAt));
   }
 
   async getActiveAnnouncement(): Promise<Announcement | undefined> {
-    return Array.from(this.announcements.values())
-      .find(a => a.isActive);
+    const [announcement] = await db.select().from(announcements)
+      .where(eq(announcements.isActive, true))
+      .limit(1);
+    return announcement || undefined;
   }
 
   async createAnnouncement(announcement: InsertAnnouncement & { createdBy: string }): Promise<Announcement> {
-    Array.from(this.announcements.values()).forEach(a => {
-      a.isActive = false;
-    });
-    const id = randomUUID();
-    const newAnnouncement: Announcement = {
-      id,
+    await db.update(announcements).set({ isActive: false });
+    const [newAnnouncement] = await db.insert(announcements).values({
       content: announcement.content,
       isActive: true,
       createdBy: announcement.createdBy,
-      createdAt: new Date(),
-    };
-    this.announcements.set(id, newAnnouncement);
+    }).returning();
     return newAnnouncement;
   }
 
   async updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement | undefined> {
-    const announcement = this.announcements.get(id);
-    if (!announcement) return undefined;
-    const updated = { ...announcement, ...updates };
-    this.announcements.set(id, updated);
-    return updated;
+    const [updated] = await db.update(announcements).set(updates).where(eq(announcements.id, id)).returning();
+    return updated || undefined;
   }
 
   async deleteAnnouncement(id: string): Promise<boolean> {
-    return this.announcements.delete(id);
+    await db.delete(announcements).where(eq(announcements.id, id));
+    return true;
   }
 
   async createUserByAdmin(user: AdminCreateUser): Promise<User> {
-    const id = randomUUID();
-    const newUser: User = {
-      id,
+    const [newUser] = await db.insert(users).values({
       username: user.username,
       password: user.password,
       displayName: user.displayName,
       role: user.role,
       level: user.level,
-      avatar: null,
       isOnline: false,
-      createdAt: new Date(),
-    };
-    this.users.set(id, newUser);
+    }).returning();
     return newUser;
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    return this.users.delete(id);
+    await db.delete(users).where(eq(users.id, id));
+    return true;
   }
 
   async getSetting(key: string): Promise<string | undefined> {
-    return this.settings.get(key);
+    const [setting] = await db.select().from(settings).where(eq(settings.key, key));
+    return setting?.value;
   }
 
   async setSetting(key: string, value: string): Promise<void> {
-    this.settings.set(key, value);
+    const existing = await db.select().from(settings).where(eq(settings.key, key));
+    if (existing.length > 0) {
+      await db.update(settings).set({ value }).where(eq(settings.key, key));
+    } else {
+      await db.insert(settings).values({ key, value });
+    }
   }
 
   async getVipApps(): Promise<VipApp[]> {
-    return Array.from(this.vipApps.values()).sort(
-      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-    );
+    return await db.select().from(vipApps).orderBy(desc(vipApps.createdAt));
   }
 
   async createVipApp(app: Omit<VipApp, "id" | "createdAt">): Promise<VipApp> {
-    const id = randomUUID();
-    const newApp: VipApp = {
-      ...app,
-      id,
-      createdAt: new Date(),
-    };
-    this.vipApps.set(id, newApp);
+    const [newApp] = await db.insert(vipApps).values(app).returning();
     return newApp;
   }
 
   async deleteVipApp(id: string): Promise<boolean> {
-    return this.vipApps.delete(id);
+    await db.delete(vipApps).where(eq(vipApps.id, id));
+    return true;
   }
 
   async getBanners(): Promise<Banner[]> {
-    return Array.from(this.banners.values()).sort(
-      (a, b) => a.displayOrder - b.displayOrder
-    );
+    return await db.select().from(banners).orderBy(asc(banners.displayOrder));
   }
 
   async getActiveBanners(): Promise<Banner[]> {
-    return Array.from(this.banners.values())
-      .filter(b => b.isActive)
-      .sort((a, b) => a.displayOrder - b.displayOrder);
+    return await db.select().from(banners)
+      .where(eq(banners.isActive, true))
+      .orderBy(asc(banners.displayOrder));
   }
 
   async getBanner(id: string): Promise<Banner | undefined> {
-    return this.banners.get(id);
+    const [banner] = await db.select().from(banners).where(eq(banners.id, id));
+    return banner || undefined;
   }
 
   async createBanner(banner: InsertBanner & { createdBy: string }): Promise<Banner> {
-    const id = randomUUID();
-    const maxOrder = Math.max(0, ...Array.from(this.banners.values()).map(b => b.displayOrder));
-    const newBanner: Banner = {
-      id,
+    const existingBanners = await db.select().from(banners);
+    const maxOrder = Math.max(0, ...existingBanners.map(b => b.displayOrder));
+    
+    const [newBanner] = await db.insert(banners).values({
       title: banner.title,
       description: banner.description ?? null,
       imageUrl: banner.imageUrl ?? null,
@@ -565,23 +330,114 @@ export class MemStorage implements IStorage {
       isActive: banner.isActive ?? true,
       displayOrder: banner.displayOrder ?? maxOrder + 1,
       createdBy: banner.createdBy,
-      createdAt: new Date(),
-    };
-    this.banners.set(id, newBanner);
+    }).returning();
     return newBanner;
   }
 
   async updateBanner(id: string, updates: Partial<Banner>): Promise<Banner | undefined> {
-    const banner = this.banners.get(id);
-    if (!banner) return undefined;
-    const updated = { ...banner, ...updates };
-    this.banners.set(id, updated);
-    return updated;
+    const [updated] = await db.update(banners).set(updates).where(eq(banners.id, id)).returning();
+    return updated || undefined;
   }
 
   async deleteBanner(id: string): Promise<boolean> {
-    return this.banners.delete(id);
+    await db.delete(banners).where(eq(banners.id, id));
+    return true;
+  }
+
+  async seedInitialData(): Promise<void> {
+    const existingUsers = await db.select().from(users);
+    if (existingUsers.length > 0) {
+      return;
+    }
+
+    const [adminUser] = await db.insert(users).values({
+      username: "admin",
+      password: "admin123",
+      displayName: "Platform Admin",
+      role: "ADMIN",
+      level: 50,
+      isOnline: true,
+    }).returning();
+
+    const [modUser] = await db.insert(users).values({
+      username: "moderator",
+      password: "mod123",
+      displayName: "Moderator",
+      role: "MOD",
+      level: 30,
+      isOnline: true,
+    }).returning();
+
+    await db.insert(users).values({
+      username: "vipuser",
+      password: "vip123",
+      displayName: "VIP Uye",
+      role: "VIP",
+      level: 20,
+      isOnline: false,
+    });
+
+    await db.insert(chatGroups).values([
+      {
+        name: "Genel Sohbet",
+        description: "Herkese acik genel sohbet grubu",
+        requiredRole: "USER",
+        isPrivate: false,
+        createdBy: adminUser.id,
+      },
+      {
+        name: "VIP Lounge",
+        description: "VIP uyelere ozel sohbet alani",
+        requiredRole: "VIP",
+        isPrivate: false,
+        createdBy: adminUser.id,
+      },
+      {
+        name: "Yonetim Sohbeti",
+        description: "Admin ve moderator ozel sohbet alani",
+        requiredRole: "MOD",
+        isPrivate: false,
+        createdBy: adminUser.id,
+      },
+    ]);
+
+    await db.insert(events).values([
+      {
+        title: "Haftalik PK Yarismasi",
+        description: "Her hafta duzenlenen buyuk PK etkinligi. Oduller ve surprizler sizi bekliyor!",
+        agencyName: "Elite Agency",
+        participant1Name: "StarQueen",
+        participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=StarQueen",
+        participant2Name: "GoldenKing",
+        participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=GoldenKing",
+        participantCount: 24,
+        participants: ["Ali", "Veli", "Ayse", "Fatma", "Mehmet"],
+        scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+        isLive: false,
+        createdBy: adminUser.id,
+      },
+      {
+        title: "VIP Ozel Yayin",
+        description: "VIP uyelere ozel canli yayin etkinligi",
+        agencyName: "Premium Productions",
+        participant1Name: "DiamondStar",
+        participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DiamondStar",
+        participant2Name: "RubyQueen",
+        participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=RubyQueen",
+        participantCount: 12,
+        participants: ["Crown", "Star", "Diamond"],
+        scheduledAt: new Date(Date.now() + 1 * 60 * 60 * 1000),
+        isLive: true,
+        createdBy: modUser.id,
+      },
+    ]);
+
+    await db.insert(announcements).values({
+      content: "Platforma hos geldiniz! Bu hafta ozel etkinlikler ve surprizler sizi bekliyor. VIP uyelik avantajlarindan yararlanin!",
+      isActive: true,
+      createdBy: adminUser.id,
+    });
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

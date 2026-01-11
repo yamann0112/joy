@@ -24,6 +24,8 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  await storage.seedInitialData();
+  
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "platform-secret-key-2024",
