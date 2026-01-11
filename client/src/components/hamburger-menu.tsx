@@ -74,11 +74,14 @@ export function HamburgerMenu() {
   const canAccessAdmin = userRole === UserRole.ADMIN;
   const canAccessMod = userRole === UserRole.ADMIN || userRole === UserRole.MOD;
 
+  const canAccessVip = userRole === UserRole.VIP || userRole === UserRole.MOD || userRole === UserRole.ADMIN;
+  
   const menuItems = [
     { href: "/dashboard", icon: <Home className="w-5 h-5" />, label: "Ana Sayfa", show: true },
     { href: "/events", icon: <Calendar className="w-5 h-5" />, label: "PK / Etkinlikler", show: true },
     { href: "/chat", icon: <MessageSquare className="w-5 h-5" />, label: "Sohbet", show: true },
     { href: "/film", icon: <Film className="w-5 h-5" />, label: "Film", show: true },
+    { href: "/vip", icon: <Crown className="w-5 h-5" />, label: "VIP Uygulamalar", show: canAccessVip },
     { href: "/tickets", icon: <Ticket className="w-5 h-5" />, label: "Destek", show: true },
     { href: "/management", icon: <Users className="w-5 h-5" />, label: "Yönetim", show: canAccessMod },
     { href: "/admin", icon: <Shield className="w-5 h-5" />, label: "Admin Panel", show: canAccessAdmin },
@@ -96,7 +99,7 @@ export function HamburgerMenu() {
         variant="outline"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className={`fixed left-4 z-50 bg-background/90 border-primary/50 shadow-lg ${hasAnnouncement ? "top-14" : "top-4"}`}
+        className={`fixed left-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 ${hasAnnouncement ? "top-14" : "top-4"}`}
         data-testid="button-hamburger-menu"
       >
         <Menu className="w-6 h-6 text-primary" strokeWidth={3} />

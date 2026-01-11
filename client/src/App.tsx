@@ -18,6 +18,7 @@ import Management from "@/pages/management";
 import Settings from "@/pages/settings";
 import UsersPage from "@/pages/users";
 import FilmPage from "@/pages/film";
+import VipPage from "@/pages/vip";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -34,6 +35,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/users" component={UsersPage} />
       <Route path="/film" component={FilmPage} />
+      <Route path="/vip" component={VipPage} />
       <Route component={NotFound} />
     </Switch>
   );

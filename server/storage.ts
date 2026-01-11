@@ -9,6 +9,17 @@ import {
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
+export interface VipApp {
+  id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  downloadUrl: string;
+  version: string;
+  size: string;
+  createdAt: Date;
+}
+
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -53,6 +64,10 @@ export interface IStorage {
 
   getSetting(key: string): Promise<string | undefined>;
   setSetting(key: string, value: string): Promise<void>;
+
+  getVipApps(): Promise<VipApp[]>;
+  createVipApp(app: Omit<VipApp, "id" | "createdAt">): Promise<VipApp>;
+  deleteVipApp(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -63,6 +78,7 @@ export class MemStorage implements IStorage {
   private tickets: Map<string, Ticket>;
   private announcements: Map<string, Announcement>;
   private settings: Map<string, string>;
+  private vipApps: Map<string, VipApp>;
 
   constructor() {
     this.users = new Map();
@@ -72,6 +88,7 @@ export class MemStorage implements IStorage {
     this.tickets = new Map();
     this.announcements = new Map();
     this.settings = new Map();
+    this.vipApps = new Map();
 
     this.seedData();
   }
@@ -473,6 +490,27 @@ export class MemStorage implements IStorage {
 
   async setSetting(key: string, value: string): Promise<void> {
     this.settings.set(key, value);
+  }
+
+  async getVipApps(): Promise<VipApp[]> {
+    return Array.from(this.vipApps.values()).sort(
+      (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+    );
+  }
+
+  async createVipApp(app: Omit<VipApp, "id" | "createdAt">): Promise<VipApp> {
+    const id = randomUUID();
+    const newApp: VipApp = {
+      ...app,
+      id,
+      createdAt: new Date(),
+    };
+    this.vipApps.set(id, newApp);
+    return newApp;
+  }
+
+  async deleteVipApp(id: string): Promise<boolean> {
+    return this.vipApps.delete(id);
   }
 }
 

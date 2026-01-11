@@ -445,5 +445,49 @@ export async function registerRoutes(
     res.json({ filmUrl: filmUrl || "" });
   });
 
+  app.get("/api/vip/apps", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (!currentUser || !["VIP", "MOD", "ADMIN"].includes(currentUser.role)) {
+      return res.status(403).json({ message: "VIP erisimi gerekli" });
+    }
+    const apps = await storage.getVipApps();
+    res.json(apps);
+  });
+
+  app.post("/api/vip/apps", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const { name, description, imageUrl, downloadUrl, version, size } = req.body;
+    if (!name || !downloadUrl) {
+      return res.status(400).json({ message: "Uygulama adi ve indirme linki gerekli" });
+    }
+
+    const app = await storage.createVipApp({
+      name,
+      description: description || "",
+      imageUrl: imageUrl || "",
+      downloadUrl,
+      version: version || "",
+      size: size || "",
+    });
+    res.status(201).json(app);
+  });
+
+  app.delete("/api/vip/apps/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const deleted = await storage.deleteVipApp(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Uygulama bulunamadi" });
+    }
+    res.json({ success: true });
+  });
+
   return httpServer;
 }
