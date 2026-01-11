@@ -20,7 +20,7 @@ import { Shield, Users, Calendar, Ticket as TicketIcon, MessageSquare, Crown, Ac
 import { Switch } from "@/components/ui/switch";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
-import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
+
 
 export default function Admin() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -262,7 +262,7 @@ export default function Admin() {
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        <HamburgerMenuTrigger />
+        
         <section>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-primary" />

@@ -14,7 +14,7 @@ import { MessageSquare, Send, Users, Plus, Hash } from "lucide-react";
 import { Redirect } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { useAnnouncement } from "@/hooks/use-announcement";
-import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
+
 
 interface ChatMessageWithUser extends ChatMessageType {
   user?: User;
@@ -108,7 +108,7 @@ export default function Chat() {
   return (
     <div className={`min-h-screen bg-background flex flex-col ${hasAnnouncement ? "pt-10" : ""}`}>
       <main className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
-        <HamburgerMenuTrigger />
+        
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-180px)]">
           <Card className="lg:col-span-1 flex flex-col overflow-hidden">
             <div className="p-4 border-b border-card-border flex items-center justify-between">

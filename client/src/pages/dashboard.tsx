@@ -8,7 +8,6 @@ import { Calendar, MessageSquare, Crown, Ticket, Film, Users } from "lucide-reac
 import { Link, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAnnouncement } from "@/hooks/use-announcement";
-import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -32,8 +31,6 @@ export default function Dashboard() {
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        <HamburgerMenuTrigger />
-
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-2">

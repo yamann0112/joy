@@ -34,6 +34,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { RoleBadge } from "@/components/role-badge";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 import { Link } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
@@ -170,6 +171,12 @@ export function TopBar() {
 
   return (
     <>
+      <div
+        className="fixed left-4 z-[60]"
+        style={{ top: `${topOffset}px` }}
+      >
+        <HamburgerMenuTrigger />
+      </div>
       <div
         className="fixed right-4 z-[60] flex items-center gap-2"
         style={{ top: `${topOffset}px` }}

@@ -50,13 +50,13 @@ function AppContent() {
   return (
     <>
       <GlobalAnnouncement />
+      <HamburgerMenuSidebar />
+      <TopBar />
       {showBanner && (
-        <div className="w-full bg-background py-2 px-4">
+        <div className="w-full bg-background pt-14 pb-2 px-4">
           <BannerCarousel />
         </div>
       )}
-      <HamburgerMenuSidebar />
-      <TopBar />
       <Toaster />
       <Router />
     </>
