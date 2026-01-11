@@ -7,8 +7,6 @@ import { AuthProvider } from "@/lib/auth-context";
 import { GlobalAnnouncement } from "@/components/global-announcement";
 import { HamburgerMenuProvider, HamburgerMenuSidebar } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
-import { BannerCarousel } from "@/components/banner-carousel";
-import { useLocation } from "wouter";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -44,19 +42,11 @@ function Router() {
 }
 
 function AppContent() {
-  const [location] = useLocation();
-  const showBanner = location === "/dashboard";
-  
   return (
     <>
       <GlobalAnnouncement />
       <HamburgerMenuSidebar />
       <TopBar />
-      {showBanner && (
-        <div className="w-full bg-background pt-14 pb-2 px-4">
-          <BannerCarousel />
-        </div>
-      )}
       <Toaster />
       <Router />
     </>
