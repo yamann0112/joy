@@ -9,10 +9,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import type { Announcement, Event, Banner } from "@shared/schema";
-import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, Star, Zap, LogIn, Megaphone, Play } from "lucide-react";
+import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, Star, Zap, LogIn, Megaphone, Play, Volume2, VolumeX } from "lucide-react";
 import { HamburgerMenu } from "@/components/hamburger-menu";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { EventCard } from "@/components/event-card";
+import { useBackgroundMusic } from "@/components/background-music";
 
 const features = [
   {
@@ -292,6 +293,20 @@ function QuickLoginBox() {
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
+  const { youtubeId } = useBackgroundMusic();
+  const [isMuted, setIsMuted] = useState(true);
+
+  const toggleMute = () => {
+    const iframe = document.getElementById('youtube-music-player') as HTMLIFrameElement;
+    if (iframe?.contentWindow) {
+      if (isMuted) {
+        iframe.contentWindow.postMessage('{"event":"command","func":"unMute","args":""}', '*');
+      } else {
+        iframe.contentWindow.postMessage('{"event":"command","func":"mute","args":""}', '*');
+      }
+      setIsMuted(!isMuted);
+    }
+  };
 
   if (isAuthenticated) {
     return <Redirect to="/dashboard" />;
@@ -307,7 +322,24 @@ export default function Home() {
             </div>
             <span className="text-xl font-bold text-gradient-gold">JOY</span>
           </div>
-          <QuickLoginBox />
+          <div className="flex items-center gap-2">
+            {youtubeId && (
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={toggleMute}
+                className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 w-8 h-8"
+                data-testid="button-home-music-toggle"
+              >
+                {isMuted ? (
+                  <VolumeX className="w-4 h-4 text-primary" />
+                ) : (
+                  <Volume2 className="w-4 h-4 text-primary" />
+                )}
+              </Button>
+            )}
+            <QuickLoginBox />
+          </div>
         </div>
       </header>
 

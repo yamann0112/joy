@@ -37,19 +37,14 @@ function AdBannerSmall() {
         {banners.map((banner) => (
           <div key={banner.id} className="flex-shrink-0 w-full">
             {banner.imageUrl ? (
-              <a 
-                href={banner.ctaUrl || "#"} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="block"
-              >
+              <div className="block cursor-default">
                 <img 
                   src={banner.imageUrl} 
                   alt={banner.title || "Reklam"} 
                   className="w-full h-auto max-h-24 object-cover"
                   data-testid={`ad-banner-${banner.id}`}
                 />
-              </a>
+              </div>
             ) : null}
           </div>
         ))}
