@@ -38,7 +38,7 @@ export default function FilmPage() {
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       {settings?.filmUrl ? (
-        <div className="fixed inset-0 bg-black" style={{ top: hasAnnouncement ? "40px" : "0" }}>
+        <div className="fixed inset-0 bg-black z-[40]" style={{ top: hasAnnouncement ? "40px" : "0" }}>
           <iframe
             src={settings.filmUrl}
             className="w-full h-full border-0"
