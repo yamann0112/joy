@@ -511,7 +511,7 @@
     top: 40px; /* Directly below announcement bar h-10 = 40px */
     left: 0;
     right: 0;
-    z-index: 25;
+    z-index: 55;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -529,7 +529,7 @@
 
   .joy-banner-inner {
     width: 100%;
-    max-width: 740px;
+    max-width: 500px;
     position: relative;
     overflow: visible;
   }

@@ -56,27 +56,20 @@ function JoyBanner() {
   );
 }
 
-function AppContent() {
-  return (
-    <>
-      <GlobalAnnouncement />
-      <JoyBanner />
-      <HamburgerMenuSidebar />
-      <TopBar />
-      <BackgroundMusicPlayer />
-      <Toaster />
-      <Router />
-    </>
-  );
-}
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
+          <GlobalAnnouncement />
+          <JoyBanner />
+          <BackgroundMusicPlayer />
           <HamburgerMenuProvider>
-            <AppContent />
+            <HamburgerMenuSidebar />
+            <TopBar />
+            <Toaster />
+            <Router />
           </HamburgerMenuProvider>
         </AuthProvider>
       </TooltipProvider>
