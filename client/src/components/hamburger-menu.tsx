@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Menu, X, Home, Calendar, MessageSquare, Users, Shield, Settings, LogOut, Ticket, Crown, Star } from "lucide-react";
+import { Menu, X, Home, Calendar, MessageSquare, Users, Shield, Settings, LogOut, Ticket, Crown, Star, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +78,7 @@ export function HamburgerMenu() {
     { href: "/dashboard", icon: <Home className="w-5 h-5" />, label: "Ana Sayfa", show: true },
     { href: "/events", icon: <Calendar className="w-5 h-5" />, label: "PK / Etkinlikler", show: true },
     { href: "/chat", icon: <MessageSquare className="w-5 h-5" />, label: "Sohbet", show: true },
+    { href: "/film", icon: <Film className="w-5 h-5" />, label: "Film", show: true },
     { href: "/tickets", icon: <Ticket className="w-5 h-5" />, label: "Destek", show: true },
     { href: "/management", icon: <Users className="w-5 h-5" />, label: "Yönetim", show: canAccessMod },
     { href: "/admin", icon: <Shield className="w-5 h-5" />, label: "Admin Panel", show: canAccessAdmin },

@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useLocation } from "wouter";
+import { useLocation, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Announcement } from "@shared/schema";
-import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, ArrowRight, Star, Zap, LogIn } from "lucide-react";
+import type { Announcement, Event } from "@shared/schema";
+import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, Star, Zap, LogIn, Megaphone, Play } from "lucide-react";
+import { HamburgerMenu } from "@/components/hamburger-menu";
+import { useAnnouncement } from "@/hooks/use-announcement";
+import { EventCard } from "@/components/event-card";
 
 const features = [
   {
@@ -133,15 +136,7 @@ export default function Home() {
   const { isAuthenticated } = useAuth();
 
   if (isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Link href="/dashboard">
-          <Button className="gap-2">
-            Dashboard'a Git <ArrowRight className="w-4 h-4" />
-          </Button>
-        </Link>
-      </div>
-    );
+    return <Redirect to="/dashboard" />;
   }
 
   return (

@@ -383,5 +383,21 @@ export async function registerRoutes(
     res.json({ message: "Kullanıcı silindi" });
   });
 
+  app.get("/api/settings/film", requireAuth, async (req, res) => {
+    const filmUrl = await storage.getSetting("filmUrl");
+    res.json({ filmUrl: filmUrl || "" });
+  });
+
+  app.post("/api/settings/film", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const { filmUrl } = req.body;
+    await storage.setSetting("filmUrl", filmUrl || "");
+    res.json({ filmUrl: filmUrl || "" });
+  });
+
   return httpServer;
 }

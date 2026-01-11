@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { HamburgerMenu } from "@/components/hamburger-menu";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -8,13 +9,49 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RoleBadge } from "@/components/role-badge";
 import type { UserRoleType } from "@shared/schema";
-import { User, Camera, Shield, Bell, Lock, Palette } from "lucide-react";
+import { User, Camera, Shield, Bell, Lock, Palette, Film, Save, Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
   const { hasAnnouncement } = useAnnouncement();
+  const { toast } = useToast();
+  const [filmUrl, setFilmUrl] = useState("");
+  
+  const isAdmin = user?.role === "ADMIN";
+  
+  const { data: filmSettings } = useQuery({
+    queryKey: ["/api/settings/film"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/film", { credentials: "include" });
+      if (!res.ok) return { filmUrl: "" };
+      return res.json();
+    },
+    enabled: isAuthenticated && isAdmin,
+  });
+  
+  useEffect(() => {
+    if (filmSettings?.filmUrl) {
+      setFilmUrl(filmSettings.filmUrl);
+    }
+  }, [filmSettings]);
+  
+  const saveFilmMutation = useMutation({
+    mutationFn: async (url: string) => {
+      return apiRequest("POST", "/api/settings/film", { filmUrl: url });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/film"] });
+      toast({ title: "Basarili", description: "Film URL kaydedildi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
 
   if (authLoading) {
     return (
@@ -207,6 +244,50 @@ export default function Settings() {
             </div>
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Film className="w-5 h-5 text-primary" />
+                Film Ayarları
+              </CardTitle>
+              <CardDescription>Film sayfasında gösterilecek video URL'si (Admin)</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="filmUrl">Video URL (Embed)</Label>
+                <Input
+                  id="filmUrl"
+                  placeholder="https://www.youtube.com/embed/..."
+                  value={filmUrl}
+                  onChange={(e) => setFilmUrl(e.target.value)}
+                  data-testid="input-film-url"
+                />
+                <p className="text-xs text-muted-foreground">
+                  YouTube, Vimeo veya baska bir embed URL girebilirsiniz
+                </p>
+              </div>
+              <Button
+                onClick={() => saveFilmMutation.mutate(filmUrl)}
+                disabled={saveFilmMutation.isPending}
+                data-testid="button-save-film-url"
+              >
+                {saveFilmMutation.isPending ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Kaydediliyor...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 mr-2" />
+                    Kaydet
+                  </>
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </main>
     </div>
   );

@@ -15,6 +15,7 @@ import Admin from "@/pages/admin";
 import Management from "@/pages/management";
 import Settings from "@/pages/settings";
 import UsersPage from "@/pages/users";
+import FilmPage from "@/pages/film";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -30,6 +31,7 @@ function Router() {
       <Route path="/management" component={Management} />
       <Route path="/settings" component={Settings} />
       <Route path="/users" component={UsersPage} />
+      <Route path="/film" component={FilmPage} />
       <Route component={NotFound} />
     </Switch>
   );

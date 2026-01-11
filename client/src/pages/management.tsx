@@ -15,10 +15,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { User, ChatGroup, UserRoleType } from "@shared/schema";
-import { Shield, Users, Plus, Trash2, Edit, Save, MessageSquare, Hash, UserPlus, UserMinus } from "lucide-react";
+import type { User, ChatGroup, UserRoleType, Ticket } from "@shared/schema";
+import { Shield, Users, Plus, Trash2, Edit, Save, MessageSquare, Hash, UserPlus, UserMinus, Ticket as TicketIcon, AlertCircle, Clock, CheckCircle } from "lucide-react";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
+import { format } from "date-fns";
+import { tr } from "date-fns/locale";
 
 export default function Management() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -40,6 +42,13 @@ export default function Management() {
     queryKey: ["/api/chat/groups"],
     enabled: isAuthenticated && canAccess,
   });
+
+  const { data: tickets, isLoading: ticketsLoading } = useQuery<Ticket[]>({
+    queryKey: ["/api/tickets"],
+    enabled: isAuthenticated && canAccess,
+  });
+
+  const pendingTickets = tickets?.filter(t => t.status === "OPEN" || t.status === "IN_PROGRESS") || [];
 
   const createGroupMutation = useMutation({
     mutationFn: async (data: typeof newGroup) => {
@@ -106,8 +115,15 @@ export default function Management() {
       <HamburgerMenu />
 
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
-        <Tabs defaultValue="users">
+        <Tabs defaultValue="tickets">
           <TabsList className="flex-wrap">
+            <TabsTrigger value="tickets" data-testid="tab-mgmt-tickets">
+              <TicketIcon className="w-4 h-4 mr-2" />
+              Destek Talepleri
+              {pendingTickets.length > 0 && (
+                <Badge variant="destructive" className="ml-2 h-5 px-1.5">{pendingTickets.length}</Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="users" data-testid="tab-mgmt-users">
               <Users className="w-4 h-4 mr-2" />
               Kullanicilar
@@ -119,6 +135,86 @@ export default function Management() {
               </TabsTrigger>
             )}
           </TabsList>
+
+          <TabsContent value="tickets" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TicketIcon className="w-5 h-5 text-primary" />
+                  Destek Talepleri
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ticketsLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-4 p-4 rounded-lg bg-muted/50">
+                        <div className="w-10 h-10 rounded-lg bg-muted animate-pulse" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-1/3 bg-muted rounded animate-pulse" />
+                          <div className="h-3 w-1/2 bg-muted rounded animate-pulse" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : tickets && tickets.length > 0 ? (
+                  <div className="space-y-3">
+                    {tickets.map((ticket) => (
+                      <div
+                        key={ticket.id}
+                        className="flex items-start gap-4 p-4 rounded-lg bg-card border border-card-border hover-elevate"
+                        data-testid={`mgmt-ticket-${ticket.id}`}
+                      >
+                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                          ticket.status === "OPEN" ? "bg-red-500/10" :
+                          ticket.status === "IN_PROGRESS" ? "bg-amber-500/10" :
+                          "bg-green-500/10"
+                        }`}>
+                          {ticket.status === "OPEN" ? (
+                            <AlertCircle className="w-5 h-5 text-red-500" />
+                          ) : ticket.status === "IN_PROGRESS" ? (
+                            <Clock className="w-5 h-5 text-amber-500" />
+                          ) : (
+                            <CheckCircle className="w-5 h-5 text-green-500" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-4 mb-1">
+                            <h3 className="font-semibold truncate">{ticket.subject}</h3>
+                            <Badge variant={
+                              ticket.status === "OPEN" ? "destructive" :
+                              ticket.status === "IN_PROGRESS" ? "outline" :
+                              "default"
+                            }>
+                              {ticket.status === "OPEN" ? "Acik" :
+                               ticket.status === "IN_PROGRESS" ? "Islemde" :
+                               "Kapali"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+                            {ticket.message}
+                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>Kullanici ID: {ticket.userId}</span>
+                            {ticket.createdAt && (
+                              <span>
+                                {format(new Date(ticket.createdAt), "d MMM yyyy, HH:mm", { locale: tr })}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <TicketIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Henuz destek talebi yok</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="users" className="mt-6">
             <Card>

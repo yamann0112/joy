@@ -50,6 +50,9 @@ export interface IStorage {
 
   createUserByAdmin(user: AdminCreateUser): Promise<User>;
   deleteUser(id: string): Promise<boolean>;
+
+  getSetting(key: string): Promise<string | undefined>;
+  setSetting(key: string, value: string): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -59,6 +62,7 @@ export class MemStorage implements IStorage {
   private chatMessages: Map<string, ChatMessage>;
   private tickets: Map<string, Ticket>;
   private announcements: Map<string, Announcement>;
+  private settings: Map<string, string>;
 
   constructor() {
     this.users = new Map();
@@ -67,6 +71,7 @@ export class MemStorage implements IStorage {
     this.chatMessages = new Map();
     this.tickets = new Map();
     this.announcements = new Map();
+    this.settings = new Map();
 
     this.seedData();
   }
@@ -460,6 +465,14 @@ export class MemStorage implements IStorage {
 
   async deleteUser(id: string): Promise<boolean> {
     return this.users.delete(id);
+  }
+
+  async getSetting(key: string): Promise<string | undefined> {
+    return this.settings.get(key);
+  }
+
+  async setSetting(key: string, value: string): Promise<void> {
+    this.settings.set(key, value);
   }
 }
 
