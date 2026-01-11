@@ -170,6 +170,66 @@ export async function registerRoutes(
     }
   });
 
+  app.post("/api/chat/groups", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN" && currentUser?.role !== "MOD") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    try {
+      const { name, description } = req.body;
+      if (!name || typeof name !== "string" || name.trim().length === 0) {
+        return res.status(400).json({ message: "Grup adı gerekli" });
+      }
+
+      const group = await storage.createChatGroup({
+        name: name.trim(),
+        description: description?.trim() || null,
+        createdBy: req.session.userId!,
+      });
+
+      res.status(201).json(group);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Grup oluşturulamadı" });
+    }
+  });
+
+  app.delete("/api/chat/groups/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const deleted = await storage.deleteChatGroup(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Grup bulunamadı" });
+    }
+    res.json({ message: "Grup silindi" });
+  });
+
+  app.delete("/api/chat/groups/:id/messages", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN" && currentUser?.role !== "MOD") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const count = await storage.deleteGroupMessages(req.params.id);
+    res.json({ message: `${count} mesaj silindi` });
+  });
+
+  app.delete("/api/chat/messages/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN" && currentUser?.role !== "MOD") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const deleted = await storage.deleteChatMessage(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Mesaj bulunamadı" });
+    }
+    res.json({ message: "Mesaj silindi" });
+  });
+
   app.get("/api/tickets", requireAuth, async (req, res) => {
     const currentUser = await storage.getUser(req.session.userId!);
     

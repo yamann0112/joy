@@ -11,6 +11,7 @@ import Events from "@/pages/events";
 import Chat from "@/pages/chat";
 import Tickets from "@/pages/tickets";
 import Admin from "@/pages/admin";
+import Management from "@/pages/management";
 import Settings from "@/pages/settings";
 import UsersPage from "@/pages/users";
 import NotFound from "@/pages/not-found";
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/chat" component={Chat} />
       <Route path="/tickets" component={Tickets} />
       <Route path="/admin" component={Admin} />
+      <Route path="/management" component={Management} />
       <Route path="/settings" component={Settings} />
       <Route path="/users" component={UsersPage} />
       <Route component={NotFound} />

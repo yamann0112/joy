@@ -26,6 +26,9 @@ export interface IStorage {
 
   getChatMessages(groupId: string): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage & { userId: string }): Promise<ChatMessage>;
+  deleteChatMessage(id: string): Promise<boolean>;
+  deleteGroupMessages(groupId: string): Promise<number>;
+  deleteChatGroup(id: string): Promise<boolean>;
 
   getTickets(userId?: string): Promise<Ticket[]>;
   getTicket(id: string): Promise<Ticket | undefined>;
@@ -329,6 +332,27 @@ export class MemStorage implements IStorage {
     };
     this.chatMessages.set(id, newMessage);
     return newMessage;
+  }
+
+  async deleteChatMessage(id: string): Promise<boolean> {
+    return this.chatMessages.delete(id);
+  }
+
+  async deleteGroupMessages(groupId: string): Promise<number> {
+    let count = 0;
+    const entries = Array.from(this.chatMessages.entries());
+    for (const [id, msg] of entries) {
+      if (msg.groupId === groupId) {
+        this.chatMessages.delete(id);
+        count++;
+      }
+    }
+    return count;
+  }
+
+  async deleteChatGroup(id: string): Promise<boolean> {
+    this.deleteGroupMessages(id);
+    return this.chatGroups.delete(id);
   }
 
   async getTickets(userId?: string): Promise<Ticket[]> {

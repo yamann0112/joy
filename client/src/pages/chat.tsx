@@ -57,6 +57,21 @@ export default function Chat() {
     },
   });
 
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId: string) => {
+      return apiRequest("DELETE", `/api/chat/messages/${messageId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/messages", selectedGroup] });
+      toast({ title: "Basarili", description: "Mesaj silindi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const canModerate = user?.role === "ADMIN" || user?.role === "MOD";
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -201,6 +216,8 @@ export default function Chat() {
                           senderRole={(msg.user?.role as UserRoleType) || "USER"}
                           createdAt={new Date(msg.createdAt!)}
                           isOwn={msg.userId === user?.id}
+                          canDelete={canModerate}
+                          onDelete={(id) => deleteMessageMutation.mutate(id)}
                         />
                       ))
                     ) : (

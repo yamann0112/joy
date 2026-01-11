@@ -77,7 +77,7 @@ export function HamburgerMenu() {
     { href: "/events", icon: <Calendar className="w-5 h-5" />, label: "PK / Etkinlikler", show: true },
     { href: "/chat", icon: <MessageSquare className="w-5 h-5" />, label: "Sohbet", show: true },
     { href: "/tickets", icon: <Ticket className="w-5 h-5" />, label: "Destek", show: true },
-    { href: "/users", icon: <Users className="w-5 h-5" />, label: "Kullanıcılar", show: canAccessMod },
+    { href: "/management", icon: <Users className="w-5 h-5" />, label: "Yönetim", show: canAccessMod },
     { href: "/admin", icon: <Shield className="w-5 h-5" />, label: "Admin Panel", show: canAccessAdmin },
     { href: "/settings", icon: <Settings className="w-5 h-5" />, label: "Ayarlar", show: true },
   ];

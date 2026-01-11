@@ -30,24 +30,33 @@ const features = [
 ];
 
 function AnnouncementMarquee() {
-  const { data: announcement } = useQuery<Announcement | null>({
+  const { data: announcement, isLoading } = useQuery<Announcement | null>({
     queryKey: ["/api/announcements/active"],
+    queryFn: async () => {
+      const res = await fetch("/api/announcements/active");
+      if (!res.ok) return null;
+      return res.json();
+    },
   });
 
-  if (!announcement) return null;
+  if (isLoading || !announcement) return null;
 
   return (
     <div className="bg-primary/10 border-y border-primary/30 py-3 overflow-hidden">
       <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
-        <div className="flex items-center gap-4 text-primary font-medium">
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
           <Sparkles className="w-5 h-5 flex-shrink-0" />
           <span>{announcement.content}</span>
         </div>
-        <div className="flex items-center gap-4 text-primary font-medium">
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
           <Sparkles className="w-5 h-5 flex-shrink-0" />
           <span>{announcement.content}</span>
         </div>
-        <div className="flex items-center gap-4 text-primary font-medium">
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
           <Sparkles className="w-5 h-5 flex-shrink-0" />
           <span>{announcement.content}</span>
         </div>

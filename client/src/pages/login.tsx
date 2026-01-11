@@ -144,12 +144,7 @@ export default function Login() {
           </Form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-muted-foreground">Hesabınız yok mu? </span>
-            <Link href="/register">
-              <span className="text-primary hover:underline cursor-pointer" data-testid="link-register">
-                Kayıt Ol
-              </span>
-            </Link>
+            <span className="text-muted-foreground">Hesabınız yok mu? Admin ile iletişime geçin.</span>
           </div>
         </CardContent>
       </Card>
