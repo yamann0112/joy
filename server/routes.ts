@@ -643,5 +643,57 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  // Featured members (Ayın Elemanı) settings - public GET
+  app.get("/api/settings/featured-members", async (req, res) => {
+    const data = await storage.getSetting("featuredMembers");
+    if (!data) {
+      return res.json({ member1: null, member2: null, member3: null });
+    }
+    try {
+      const parsed = JSON.parse(data);
+      res.json(parsed);
+    } catch {
+      res.json({ member1: null, member2: null, member3: null });
+    }
+  });
+
+  app.post("/api/settings/featured-members", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const { member1, member2, member3 } = req.body;
+    const data = JSON.stringify({ member1, member2, member3 });
+    await storage.setSetting("featuredMembers", data);
+    res.json({ member1, member2, member3 });
+  });
+
+  // Site branding settings - public GET
+  app.get("/api/settings/branding", async (req, res) => {
+    const data = await storage.getSetting("branding");
+    if (!data) {
+      return res.json({ siteName: "JOY", showFlag: true });
+    }
+    try {
+      const parsed = JSON.parse(data);
+      res.json(parsed);
+    } catch {
+      res.json({ siteName: "JOY", showFlag: true });
+    }
+  });
+
+  app.post("/api/settings/branding", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const { siteName, showFlag } = req.body;
+    const data = JSON.stringify({ siteName: siteName || "JOY", showFlag: showFlag !== false });
+    await storage.setSetting("branding", data);
+    res.json({ siteName: siteName || "JOY", showFlag: showFlag !== false });
+  });
+
   return httpServer;
 }
