@@ -43,6 +43,10 @@ export const events = pgTable("events", {
   description: text("description"),
   agencyName: text("agency_name").notNull(),
   agencyLogo: text("agency_logo"),
+  participant1Name: text("participant1_name"),
+  participant1Avatar: text("participant1_avatar"),
+  participant2Name: text("participant2_name"),
+  participant2Avatar: text("participant2_avatar"),
   participantCount: integer("participant_count").notNull().default(0),
   participants: text("participants").array(),
   scheduledAt: timestamp("scheduled_at").notNull(),
@@ -56,6 +60,10 @@ export const insertEventSchema = createInsertSchema(events).pick({
   description: true,
   agencyName: true,
   agencyLogo: true,
+  participant1Name: true,
+  participant1Avatar: true,
+  participant2Name: true,
+  participant2Avatar: true,
   scheduledAt: true,
 });
 
@@ -111,9 +119,34 @@ export const insertTicketSchema = createInsertSchema(tickets).pick({
 export type InsertTicket = z.infer<typeof insertTicketSchema>;
 export type Ticket = typeof tickets.$inferSelect;
 
+export const announcements = pgTable("announcements", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  content: text("content").notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertAnnouncementSchema = createInsertSchema(announcements).pick({
+  content: true,
+});
+
+export type InsertAnnouncement = z.infer<typeof insertAnnouncementSchema>;
+export type Announcement = typeof announcements.$inferSelect;
+
 export const loginSchema = z.object({
   username: z.string().min(1, "Kullanıcı adı gerekli"),
   password: z.string().min(1, "Şifre gerekli"),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
+
+export const adminCreateUserSchema = z.object({
+  username: z.string().min(3, "Kullanıcı adı en az 3 karakter olmalı"),
+  password: z.string().min(6, "Şifre en az 6 karakter olmalı"),
+  displayName: z.string().min(2, "Görünen isim en az 2 karakter olmalı"),
+  role: z.enum(["USER", "VIP", "MOD", "ADMIN"]),
+  level: z.number().min(1).max(100),
+});
+
+export type AdminCreateUser = z.infer<typeof adminCreateUserSchema>;

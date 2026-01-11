@@ -1,32 +1,60 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { PremiumMarquee } from "@/components/marquee";
 import { useAuth } from "@/lib/auth-context";
+import { useQuery } from "@tanstack/react-query";
+import type { Announcement } from "@shared/schema";
 import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, ArrowRight, Star, Zap } from "lucide-react";
 
 const features = [
   {
     icon: Calendar,
     title: "PK Etkinlikleri",
-    description: "Canlı yayınlar ve özel etkinliklere katılın",
+    description: "Canli yayinlar ve ozel etkinliklere katilin",
   },
   {
     icon: MessageSquare,
     title: "Grup Sohbetleri",
-    description: "Ajans gruplarında yazılı sohbet edin",
+    description: "Ajans gruplarinda yazili sohbet edin",
   },
   {
     icon: Users,
     title: "Elit Topluluk",
-    description: "VIP ve özel üyelerle tanışın",
+    description: "VIP ve ozel uyelerle tanisin",
   },
   {
     icon: Shield,
-    title: "Güvenli Platform",
-    description: "Moderatör destekli güvenli ortam",
+    title: "Guvenli Platform",
+    description: "Moderator destekli guvenli ortam",
   },
 ];
+
+function AnnouncementMarquee() {
+  const { data: announcement } = useQuery<Announcement | null>({
+    queryKey: ["/api/announcements/active"],
+  });
+
+  if (!announcement) return null;
+
+  return (
+    <div className="bg-primary/10 border-y border-primary/30 py-3 overflow-hidden">
+      <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+        <div className="flex items-center gap-4 text-primary font-medium">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+        <div className="flex items-center gap-4 text-primary font-medium">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+        <div className="flex items-center gap-4 text-primary font-medium">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
@@ -55,13 +83,8 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login">
-              <Button variant="ghost" data-testid="button-login-nav">
-                Giriş Yap
-              </Button>
-            </Link>
-            <Link href="/register">
-              <Button data-testid="button-register-nav">
-                Kayıt Ol
+              <Button data-testid="button-login-nav">
+                Giris Yap
               </Button>
             </Link>
           </div>
@@ -69,6 +92,8 @@ export default function Home() {
       </header>
 
       <main className="flex-1 pt-20">
+        <AnnouncementMarquee />
+
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-black via-background to-background" />
           <div className="absolute inset-0 opacity-20">
@@ -85,33 +110,31 @@ export default function Home() {
             <h1 className="text-5xl md:text-7xl font-bold mb-6">
               <span className="text-foreground">Elit Toplulukta</span>
               <br />
-              <span className="text-gradient-gold">Yerinizi Alın</span>
+              <span className="text-gradient-gold">Yerinizi Alin</span>
             </h1>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
-              PK etkinlikleri, özel sohbet grupları ve VIP avantajlarıyla
-              dolu premium ajans platformuna hoş geldiniz.
+              PK etkinlikleri, ozel sohbet gruplari ve VIP avantajlariyla
+              dolu premium ajans platformuna hos geldiniz.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/register">
-                <Button size="lg" className="gap-2 text-lg px-8" data-testid="button-get-started">
-                  <Crown className="w-5 h-5" />
-                  Hemen Başla
-                </Button>
-              </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline" className="gap-2 text-lg px-8" data-testid="button-login-hero">
-                  Giriş Yap
-                  <ArrowRight className="w-5 h-5" />
+                <Button size="lg" className="gap-2 text-lg px-8" data-testid="button-login-hero">
+                  <Crown className="w-5 h-5" />
+                  Giris Yap
                 </Button>
               </Link>
             </div>
 
+            <p className="text-sm text-muted-foreground mt-6">
+              Hesabiniz yok mu? Admin ile iletisime gecin.
+            </p>
+
             <div className="flex items-center justify-center gap-8 mt-12 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <Star className="w-4 h-4 text-primary" />
-                <span>1000+ Üye</span>
+                <span>1000+ Uye</span>
               </div>
               <div className="flex items-center gap-2">
                 <Zap className="w-4 h-4 text-primary" />
@@ -119,22 +142,20 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-primary" />
-                <span>Günlük Etkinlik</span>
+                <span>Gunluk Etkinlik</span>
               </div>
             </div>
           </div>
         </section>
 
-        <PremiumMarquee />
-
         <section className="py-20 px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                <span className="text-gradient-gold">Özellikler</span>
+                <span className="text-gradient-gold">Ozellikler</span>
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Platform size en iyi deneyimi sunmak için tasarlandı
+                Platform size en iyi deneyimi sunmak icin tasarlandi
               </p>
             </div>
 
@@ -163,13 +184,13 @@ export default function Home() {
               <span className="text-gradient-gold">Premium Deneyim</span>
             </h2>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              VIP üyelik ile özel avantajlara erişin, etkinliklere öncelikli katılın
-              ve premium destek alın.
+              VIP uyelik ile ozel avantajlara erisin, etkinliklere oncelikli katilin
+              ve premium destek alin.
             </p>
-            <Link href="/register">
+            <Link href="/login">
               <Button size="lg" className="gap-2">
                 <Sparkles className="w-5 h-5" />
-                VIP Ol
+                Giris Yap
               </Button>
             </Link>
           </div>
@@ -185,7 +206,7 @@ export default function Home() {
             <span className="font-semibold text-gradient-gold">PLATFORM</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            © 2024 Platform. Tüm hakları saklıdır.
+            2024 Platform. Tum haklari saklidir.
           </p>
         </div>
       </footer>

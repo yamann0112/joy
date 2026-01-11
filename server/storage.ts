@@ -3,7 +3,9 @@ import {
   type Event, type InsertEvent,
   type ChatGroup, type InsertChatGroup,
   type ChatMessage, type InsertChatMessage,
-  type Ticket, type InsertTicket
+  type Ticket, type InsertTicket,
+  type Announcement, type InsertAnnouncement,
+  type AdminCreateUser
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -36,6 +38,15 @@ export interface IStorage {
     totalMessages: number;
     totalTickets: number;
   }>;
+
+  getAnnouncements(): Promise<Announcement[]>;
+  getActiveAnnouncement(): Promise<Announcement | undefined>;
+  createAnnouncement(announcement: InsertAnnouncement & { createdBy: string }): Promise<Announcement>;
+  updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement | undefined>;
+  deleteAnnouncement(id: string): Promise<boolean>;
+
+  createUserByAdmin(user: AdminCreateUser): Promise<User>;
+  deleteUser(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -44,6 +55,7 @@ export class MemStorage implements IStorage {
   private chatGroups: Map<string, ChatGroup>;
   private chatMessages: Map<string, ChatMessage>;
   private tickets: Map<string, Ticket>;
+  private announcements: Map<string, Announcement>;
 
   constructor() {
     this.users = new Map();
@@ -51,6 +63,7 @@ export class MemStorage implements IStorage {
     this.chatGroups = new Map();
     this.chatMessages = new Map();
     this.tickets = new Map();
+    this.announcements = new Map();
 
     this.seedData();
   }
@@ -132,6 +145,10 @@ export class MemStorage implements IStorage {
       description: "Her hafta düzenlenen büyük PK etkinliği. Ödüller ve sürprizler sizi bekliyor!",
       agencyName: "Elite Agency",
       agencyLogo: null,
+      participant1Name: "StarQueen",
+      participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=StarQueen",
+      participant2Name: "GoldenKing",
+      participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=GoldenKing",
       participantCount: 24,
       participants: ["Ali", "Veli", "Ayşe", "Fatma", "Mehmet"],
       scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
@@ -147,6 +164,10 @@ export class MemStorage implements IStorage {
       description: "VIP üyelere özel canlı yayın etkinliği",
       agencyName: "Premium Productions",
       agencyLogo: null,
+      participant1Name: "DiamondStar",
+      participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=DiamondStar",
+      participant2Name: "RubyQueen",
+      participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=RubyQueen",
       participantCount: 12,
       participants: ["Crown", "Star", "Diamond"],
       scheduledAt: new Date(Date.now() + 1 * 60 * 60 * 1000),
@@ -162,10 +183,23 @@ export class MemStorage implements IStorage {
       description: "Platform kullanımı hakkında bilgilendirme etkinliği",
       agencyName: "Community Team",
       agencyLogo: null,
+      participant1Name: "MentorPro",
+      participant1Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=MentorPro",
+      participant2Name: "GuideAce",
+      participant2Avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=GuideAce",
       participantCount: 45,
       participants: ["Helper1", "Helper2", "Guide"],
       scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
       isLive: false,
+      createdBy: adminId,
+      createdAt: new Date(),
+    });
+
+    const announcementId = randomUUID();
+    this.announcements.set(announcementId, {
+      id: announcementId,
+      content: "Platforma hos geldiniz! Bu hafta ozel etkinlikler ve surprizler sizi bekliyor. VIP uyelik avantajlarindan yararlanin!",
+      isActive: true,
       createdBy: adminId,
       createdAt: new Date(),
     });
@@ -239,11 +273,20 @@ export class MemStorage implements IStorage {
   async createEvent(event: InsertEvent & { createdBy: string }): Promise<Event> {
     const id = randomUUID();
     const newEvent: Event = {
-      ...event,
       id,
+      title: event.title,
+      description: event.description ?? null,
+      agencyName: event.agencyName,
+      agencyLogo: event.agencyLogo ?? null,
+      participant1Name: event.participant1Name ?? null,
+      participant1Avatar: event.participant1Avatar ?? null,
+      participant2Name: event.participant2Name ?? null,
+      participant2Avatar: event.participant2Avatar ?? null,
       participantCount: 0,
       participants: [],
+      scheduledAt: event.scheduledAt,
       isLive: false,
+      createdBy: event.createdBy,
       createdAt: new Date(),
     };
     this.events.set(id, newEvent);
@@ -261,8 +304,10 @@ export class MemStorage implements IStorage {
   async createChatGroup(group: InsertChatGroup & { createdBy: string }): Promise<ChatGroup> {
     const id = randomUUID();
     const newGroup: ChatGroup = {
-      ...group,
       id,
+      name: group.name,
+      description: group.description ?? null,
+      createdBy: group.createdBy,
       createdAt: new Date(),
     };
     this.chatGroups.set(id, newGroup);
@@ -332,6 +377,65 @@ export class MemStorage implements IStorage {
       totalMessages: this.chatMessages.size,
       totalTickets: this.tickets.size,
     };
+  }
+
+  async getAnnouncements(): Promise<Announcement[]> {
+    return Array.from(this.announcements.values())
+      .sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
+  }
+
+  async getActiveAnnouncement(): Promise<Announcement | undefined> {
+    return Array.from(this.announcements.values())
+      .find(a => a.isActive);
+  }
+
+  async createAnnouncement(announcement: InsertAnnouncement & { createdBy: string }): Promise<Announcement> {
+    Array.from(this.announcements.values()).forEach(a => {
+      a.isActive = false;
+    });
+    const id = randomUUID();
+    const newAnnouncement: Announcement = {
+      id,
+      content: announcement.content,
+      isActive: true,
+      createdBy: announcement.createdBy,
+      createdAt: new Date(),
+    };
+    this.announcements.set(id, newAnnouncement);
+    return newAnnouncement;
+  }
+
+  async updateAnnouncement(id: string, updates: Partial<Announcement>): Promise<Announcement | undefined> {
+    const announcement = this.announcements.get(id);
+    if (!announcement) return undefined;
+    const updated = { ...announcement, ...updates };
+    this.announcements.set(id, updated);
+    return updated;
+  }
+
+  async deleteAnnouncement(id: string): Promise<boolean> {
+    return this.announcements.delete(id);
+  }
+
+  async createUserByAdmin(user: AdminCreateUser): Promise<User> {
+    const id = randomUUID();
+    const newUser: User = {
+      id,
+      username: user.username,
+      password: user.password,
+      displayName: user.displayName,
+      role: user.role,
+      level: user.level,
+      avatar: null,
+      isOnline: false,
+      createdAt: new Date(),
+    };
+    this.users.set(id, newUser);
+    return newUser;
+  }
+
+  async deleteUser(id: string): Promise<boolean> {
+    return this.users.delete(id);
   }
 }
 

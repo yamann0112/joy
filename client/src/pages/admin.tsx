@@ -1,19 +1,46 @@
+import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { HamburgerMenu } from "@/components/hamburger-menu";
 import { StatCard, StatCardSkeleton } from "@/components/stat-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadge } from "@/components/role-badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useQuery } from "@tanstack/react-query";
-import type { User, Event, Ticket, UserRoleType } from "@shared/schema";
-import { Shield, Users, Calendar, Ticket as TicketIcon, MessageSquare, Settings, Crown, Activity } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { queryClient, apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import type { User, Announcement, UserRoleType } from "@shared/schema";
+import { Shield, Users, Calendar, Ticket as TicketIcon, MessageSquare, Crown, Activity, Plus, Trash2, Edit, Megaphone, Save } from "lucide-react";
 import { Redirect } from "wouter";
 
 export default function Admin() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { toast } = useToast();
+  const [isAddUserOpen, setIsAddUserOpen] = useState(false);
+  const [isEditUserOpen, setIsEditUserOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [newAnnouncement, setNewAnnouncement] = useState("");
+
+  const [newUser, setNewUser] = useState({
+    username: "",
+    password: "",
+    displayName: "",
+    role: "USER" as UserRoleType,
+    level: 1,
+  });
+
+  const [editUserData, setEditUserData] = useState({
+    displayName: "",
+    role: "USER" as UserRoleType,
+    level: 1,
+  });
 
   const { data: stats } = useQuery<{
     totalUsers: number;
@@ -30,10 +57,99 @@ export default function Admin() {
     enabled: isAuthenticated && user?.role === "ADMIN",
   });
 
-  const { data: recentTickets } = useQuery<Ticket[]>({
-    queryKey: ["/api/admin/tickets/recent"],
+  const { data: announcements } = useQuery<Announcement[]>({
+    queryKey: ["/api/announcements"],
     enabled: isAuthenticated && user?.role === "ADMIN",
   });
+
+  const createUserMutation = useMutation({
+    mutationFn: async (data: typeof newUser) => {
+      const response = await apiRequest("POST", "/api/admin/users", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      setIsAddUserOpen(false);
+      setNewUser({ username: "", password: "", displayName: "", role: "USER", level: 1 });
+      toast({ title: "Basarili", description: "Kullanici olusturuldu" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateUserMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: typeof editUserData }) => {
+      const response = await apiRequest("PATCH", `/api/admin/users/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      setIsEditUserOpen(false);
+      setSelectedUser(null);
+      toast({ title: "Basarili", description: "Kullanici guncellendi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteUserMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/users/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/users"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/stats"] });
+      toast({ title: "Basarili", description: "Kullanici silindi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const createAnnouncementMutation = useMutation({
+    mutationFn: async (content: string) => {
+      const response = await apiRequest("POST", "/api/admin/announcements", { content });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements/active"] });
+      setNewAnnouncement("");
+      toast({ title: "Basarili", description: "Duyuru yayinlandi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/announcements/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/announcements/active"] });
+      toast({ title: "Basarili", description: "Duyuru silindi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleEditUser = (u: User) => {
+    setSelectedUser(u);
+    setEditUserData({
+      displayName: u.displayName,
+      role: (u.role as UserRoleType) || "USER",
+      level: u.level,
+    });
+    setIsEditUserOpen(true);
+  };
 
   if (authLoading) {
     return (
@@ -57,14 +173,14 @@ export default function Admin() {
 
       <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                 <Shield className="w-5 h-5 text-primary" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-gradient-gold">Admin Panel</h1>
-                <p className="text-sm text-muted-foreground">Platform yönetimi</p>
+                <p className="text-sm text-muted-foreground">Tam Kontrol Merkezi</p>
               </div>
             </div>
             <RoleBadge role="ADMIN" />
@@ -76,12 +192,12 @@ export default function Admin() {
         <section>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Activity className="w-5 h-5 text-primary" />
-            Platform İstatistikleri
+            Platform Istatistikleri
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {stats ? (
               <>
-                <StatCard title="Toplam Üye" value={stats.totalUsers} icon={Users} />
+                <StatCard title="Toplam Uye" value={stats.totalUsers} icon={Users} />
                 <StatCard title="Etkinlikler" value={stats.totalEvents} icon={Calendar} />
                 <StatCard title="Mesajlar" value={stats.totalMessages} icon={MessageSquare} />
                 <StatCard title="Destek Talepleri" value={stats.totalTickets} icon={TicketIcon} />
@@ -98,28 +214,100 @@ export default function Admin() {
         </section>
 
         <Tabs defaultValue="users">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="users" data-testid="tab-admin-users">
               <Users className="w-4 h-4 mr-2" />
-              Kullanıcılar
+              Kullanicilar
             </TabsTrigger>
-            <TabsTrigger value="tickets" data-testid="tab-admin-tickets">
-              <TicketIcon className="w-4 h-4 mr-2" />
-              Talepler
-            </TabsTrigger>
-            <TabsTrigger value="settings" data-testid="tab-admin-settings">
-              <Settings className="w-4 h-4 mr-2" />
-              Ayarlar
+            <TabsTrigger value="announcements" data-testid="tab-admin-announcements">
+              <Megaphone className="w-4 h-4 mr-2" />
+              Duyurular
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="users" className="mt-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
-                <CardTitle>Kullanıcı Yönetimi</CardTitle>
-                <Button variant="outline" size="sm" data-testid="button-add-user">
-                  Kullanıcı Ekle
-                </Button>
+                <CardTitle>Kullanici Yonetimi</CardTitle>
+                <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-user">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Kullanici Ekle
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Yeni Kullanici Olustur</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4">
+                      <div className="space-y-2">
+                        <Label>Kullanici Adi</Label>
+                        <Input
+                          data-testid="input-new-username"
+                          value={newUser.username}
+                          onChange={(e) => setNewUser({ ...newUser, username: e.target.value })}
+                          placeholder="kullaniciadi"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Sifre</Label>
+                        <Input
+                          data-testid="input-new-password"
+                          type="password"
+                          value={newUser.password}
+                          onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                          placeholder="******"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Gorunen Isim</Label>
+                        <Input
+                          data-testid="input-new-displayname"
+                          value={newUser.displayName}
+                          onChange={(e) => setNewUser({ ...newUser, displayName: e.target.value })}
+                          placeholder="Gorunen isim"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Rol</Label>
+                        <Select
+                          value={newUser.role}
+                          onValueChange={(v) => setNewUser({ ...newUser, role: v as UserRoleType })}
+                        >
+                          <SelectTrigger data-testid="select-new-role">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="USER">USER</SelectItem>
+                            <SelectItem value="VIP">VIP</SelectItem>
+                            <SelectItem value="MOD">MOD</SelectItem>
+                            <SelectItem value="ADMIN">ADMIN</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Level (1-100)</Label>
+                        <Input
+                          data-testid="input-new-level"
+                          type="number"
+                          min={1}
+                          max={100}
+                          value={newUser.level}
+                          onChange={(e) => setNewUser({ ...newUser, level: parseInt(e.target.value) || 1 })}
+                        />
+                      </div>
+                      <Button
+                        className="w-full"
+                        data-testid="button-submit-new-user"
+                        onClick={() => createUserMutation.mutate(newUser)}
+                        disabled={createUserMutation.isPending}
+                      >
+                        {createUserMutation.isPending ? "Olusturuluyor..." : "Kullanici Olustur"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardHeader>
               <CardContent>
                 {usersLoading ? (
@@ -149,16 +337,38 @@ export default function Admin() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium truncate">{u.displayName}</span>
                             <RoleBadge role={(u.role as UserRoleType) || "USER"} size="sm" />
+                            {u.isOnline && (
+                              <span className="w-2 h-2 rounded-full bg-green-500" />
+                            )}
                           </div>
                           <span className="text-sm text-muted-foreground">@{u.username}</span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <Badge variant="outline">Level {u.level}</Badge>
-                          <Button variant="ghost" size="sm" data-testid={`button-edit-user-${u.id}`}>
-                            Düzenle
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleEditUser(u)}
+                            data-testid={`button-edit-user-${u.id}`}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive"
+                            onClick={() => {
+                              if (confirm("Bu kullaniciyi silmek istediginize emin misiniz?")) {
+                                deleteUserMutation.mutate(u.id);
+                              }
+                            }}
+                            disabled={u.id === user?.id}
+                            data-testid={`button-delete-user-${u.id}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </div>
@@ -167,97 +377,145 @@ export default function Admin() {
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
                     <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Henüz kullanıcı yok</p>
+                    <p>Henuz kullanici yok</p>
                   </div>
                 )}
               </CardContent>
             </Card>
-          </TabsContent>
 
-          <TabsContent value="tickets" className="mt-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Destek Talepleri</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentTickets && recentTickets.length > 0 ? (
+            <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Kullanici Duzenle: {selectedUser?.displayName}</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4">
                   <div className="space-y-2">
-                    {recentTickets.map((ticket) => (
-                      <div
-                        key={ticket.id}
-                        className="flex items-center gap-4 p-3 rounded-lg bg-card border border-card-border hover-elevate cursor-pointer"
-                        data-testid={`admin-ticket-${ticket.id}`}
-                      >
-                        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                          <TicketIcon className="w-5 h-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{ticket.subject}</p>
-                          <p className="text-sm text-muted-foreground truncate">
-                            {ticket.message}
-                          </p>
-                        </div>
-                        <Badge
-                          className={
-                            ticket.status === "open"
-                              ? "bg-blue-500"
-                              : ticket.status === "resolved"
-                              ? "bg-green-500"
-                              : "bg-muted"
-                          }
-                        >
-                          {ticket.status === "open"
-                            ? "Açık"
-                            : ticket.status === "resolved"
-                            ? "Çözüldü"
-                            : ticket.status}
-                        </Badge>
-                      </div>
-                    ))}
+                    <Label>Gorunen Isim</Label>
+                    <Input
+                      data-testid="input-edit-displayname"
+                      value={editUserData.displayName}
+                      onChange={(e) => setEditUserData({ ...editUserData, displayName: e.target.value })}
+                    />
                   </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <TicketIcon className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                    <p>Henüz destek talebi yok</p>
+                  <div className="space-y-2">
+                    <Label>Rol</Label>
+                    <Select
+                      value={editUserData.role}
+                      onValueChange={(v) => setEditUserData({ ...editUserData, role: v as UserRoleType })}
+                    >
+                      <SelectTrigger data-testid="select-edit-role">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USER">USER</SelectItem>
+                        <SelectItem value="VIP">VIP</SelectItem>
+                        <SelectItem value="MOD">MOD</SelectItem>
+                        <SelectItem value="ADMIN">ADMIN</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
-              </CardContent>
-            </Card>
+                  <div className="space-y-2">
+                    <Label>Level (1-100)</Label>
+                    <Input
+                      data-testid="input-edit-level"
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={editUserData.level}
+                      onChange={(e) => setEditUserData({ ...editUserData, level: parseInt(e.target.value) || 1 })}
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    data-testid="button-submit-edit-user"
+                    onClick={() => {
+                      if (selectedUser) {
+                        updateUserMutation.mutate({ id: selectedUser.id, data: editUserData });
+                      }
+                    }}
+                    disabled={updateUserMutation.isPending}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateUserMutation.isPending ? "Kaydediliyor..." : "Degisiklikleri Kaydet"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
-          <TabsContent value="settings" className="mt-6">
+          <TabsContent value="announcements" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>Platform Ayarları</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  <Megaphone className="w-5 h-5 text-primary" />
+                  Duyuru Yonetimi
+                </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card className="p-4 hover-elevate cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Crown className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Rol Yönetimi</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Kullanıcı rollerini düzenle
-                        </p>
-                      </div>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <Label>Yeni Duyuru Yayinla</Label>
+                  <Textarea
+                    data-testid="input-new-announcement"
+                    value={newAnnouncement}
+                    onChange={(e) => setNewAnnouncement(e.target.value)}
+                    placeholder="Duyuru metni yazin... (Bu duyuru anasayfada kayan yazi olarak gorunecek)"
+                    rows={3}
+                  />
+                  <Button
+                    data-testid="button-publish-announcement"
+                    onClick={() => {
+                      if (newAnnouncement.trim()) {
+                        createAnnouncementMutation.mutate(newAnnouncement);
+                      }
+                    }}
+                    disabled={createAnnouncementMutation.isPending || !newAnnouncement.trim()}
+                  >
+                    <Megaphone className="w-4 h-4 mr-2" />
+                    {createAnnouncementMutation.isPending ? "Yayinlaniyor..." : "Duyuruyu Yayinla"}
+                  </Button>
+                </div>
+
+                <div className="border-t pt-6">
+                  <h4 className="font-medium mb-4">Mevcut Duyurular</h4>
+                  {announcements && announcements.length > 0 ? (
+                    <div className="space-y-3">
+                      {announcements.map((a) => (
+                        <div
+                          key={a.id}
+                          className={`p-4 rounded-lg border ${a.isActive ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                          data-testid={`announcement-${a.id}`}
+                        >
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                {a.isActive && (
+                                  <Badge className="bg-primary text-primary-foreground">Aktif</Badge>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(a.createdAt!).toLocaleDateString("tr-TR")}
+                                </span>
+                              </div>
+                              <p className="text-sm">{a.content}</p>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => deleteAnnouncementMutation.mutate(a.id)}
+                              data-testid={`button-delete-announcement-${a.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </Card>
-                  <Card className="p-4 hover-elevate cursor-pointer">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Settings className="w-5 h-5 text-primary" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium">Genel Ayarlar</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Platform ayarlarını yapılandır
-                        </p>
-                      </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Megaphone className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Henuz duyuru yok</p>
                     </div>
-                  </Card>
+                  )}
                 </div>
               </CardContent>
             </Card>

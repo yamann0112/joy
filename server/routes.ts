@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertChatMessageSchema, insertTicketSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertChatMessageSchema, insertTicketSchema, insertAnnouncementSchema, adminCreateUserSchema } from "@shared/schema";
 import session from "express-session";
 import MemoryStore from "memorystore";
 
@@ -40,24 +40,6 @@ export async function registerRoutes(
     })
   );
 
-  app.post("/api/auth/register", async (req, res) => {
-    try {
-      const validatedData = insertUserSchema.parse(req.body);
-      
-      const existingUser = await storage.getUserByUsername(validatedData.username);
-      if (existingUser) {
-        return res.status(400).json({ message: "Bu kullanıcı adı zaten kullanılıyor" });
-      }
-
-      const user = await storage.createUser(validatedData);
-      req.session.userId = user.id;
-      
-      const { password, ...userWithoutPassword } = user;
-      res.status(201).json(userWithoutPassword);
-    } catch (error: any) {
-      res.status(400).json({ message: error.message || "Kayıt başarısız" });
-    }
-  });
 
   app.post("/api/auth/login", async (req, res) => {
     try {
@@ -238,6 +220,107 @@ export async function registerRoutes(
     }
     
     res.json(ticket);
+  });
+
+  app.get("/api/announcements", async (req, res) => {
+    const announcements = await storage.getAnnouncements();
+    res.json(announcements);
+  });
+
+  app.get("/api/announcements/active", async (req, res) => {
+    const announcement = await storage.getActiveAnnouncement();
+    res.json(announcement || null);
+  });
+
+  app.post("/api/admin/announcements", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    try {
+      const validatedData = insertAnnouncementSchema.parse(req.body);
+      const announcement = await storage.createAnnouncement({
+        ...validatedData,
+        createdBy: req.session.userId!,
+      });
+      res.status(201).json(announcement);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Duyuru oluşturulamadı" });
+    }
+  });
+
+  app.delete("/api/admin/announcements/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const deleted = await storage.deleteAnnouncement(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Duyuru bulunamadı" });
+    }
+    res.json({ message: "Duyuru silindi" });
+  });
+
+  app.post("/api/admin/users", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    try {
+      const validatedData = adminCreateUserSchema.parse(req.body);
+      
+      const existingUser = await storage.getUserByUsername(validatedData.username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Bu kullanıcı adı zaten kullanılıyor" });
+      }
+
+      const user = await storage.createUserByAdmin(validatedData);
+      const { password, ...userWithoutPassword } = user;
+      res.status(201).json(userWithoutPassword);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Kullanıcı oluşturulamadı" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const { role, level, displayName } = req.body;
+    const updates: Record<string, any> = {};
+    if (role) updates.role = role;
+    if (level !== undefined) updates.level = level;
+    if (displayName) updates.displayName = displayName;
+
+    const user = await storage.updateUser(req.params.id, updates);
+    if (!user) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  });
+
+  app.delete("/api/admin/users/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    if (req.params.id === req.session.userId) {
+      return res.status(400).json({ message: "Kendinizi silemezsiniz" });
+    }
+
+    const deleted = await storage.deleteUser(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Kullanıcı bulunamadı" });
+    }
+    res.json({ message: "Kullanıcı silindi" });
   });
 
   return httpServer;
