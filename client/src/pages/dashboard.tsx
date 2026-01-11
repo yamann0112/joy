@@ -49,7 +49,7 @@ export default function Dashboard() {
     <div className="min-h-screen bg-background">
       <HamburgerMenu />
 
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
+      <header className="border-b border-border bg-card/50">
         <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
           <div className="flex items-center justify-between">
             <div>
