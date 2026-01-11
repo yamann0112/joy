@@ -436,6 +436,7 @@ export function TopBar() {
                         className={`flex gap-2 ${msg.userId === user?.id ? "flex-row-reverse" : ""}`}
                       >
                         <Avatar className="w-6 h-6 flex-shrink-0">
+                          <AvatarImage src={msg.user?.avatar || undefined} />
                           <AvatarFallback className="text-xs bg-primary/20 text-primary">
                             {msg.user?.displayName?.charAt(0) || "U"}
                           </AvatarFallback>

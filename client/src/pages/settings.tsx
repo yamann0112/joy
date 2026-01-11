@@ -20,9 +20,16 @@ export default function Settings() {
   const { hasAnnouncement } = useAnnouncement();
   const { toast } = useToast();
   const [filmUrl, setFilmUrl] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const isAdmin = user?.role === "ADMIN";
+  
+  useEffect(() => {
+    if (user?.displayName) {
+      setDisplayName(user.displayName);
+    }
+  }, [user?.displayName]);
   
   const updateAvatarMutation = useMutation({
     mutationFn: async (avatar: string) => {
@@ -32,6 +39,20 @@ export default function Settings() {
       queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
       refetchUser?.();
       toast({ title: "Basarili", description: "Profil resmi guncellendi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+  
+  const updateProfileMutation = useMutation({
+    mutationFn: async (newDisplayName: string) => {
+      return apiRequest("PATCH", "/api/user/profile", { displayName: newDisplayName });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      refetchUser?.();
+      toast({ title: "Basarili", description: "Profil guncellendi" });
     },
     onError: (error: any) => {
       toast({ title: "Hata", description: error.message, variant: "destructive" });
@@ -156,7 +177,8 @@ export default function Settings() {
                 <Label htmlFor="displayName">Görünen İsim</Label>
                 <Input
                   id="displayName"
-                  defaultValue={user?.displayName}
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
                   data-testid="input-settings-display-name"
                 />
               </div>
@@ -175,7 +197,20 @@ export default function Settings() {
               </div>
             </div>
 
-            <Button data-testid="button-save-profile">Değişiklikleri Kaydet</Button>
+            <Button 
+              onClick={() => updateProfileMutation.mutate(displayName)}
+              disabled={updateProfileMutation.isPending || !displayName.trim()}
+              data-testid="button-save-profile"
+            >
+              {updateProfileMutation.isPending ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Kaydediliyor...
+                </>
+              ) : (
+                "Değişiklikleri Kaydet"
+              )}
+            </Button>
           </CardContent>
         </Card>
 
