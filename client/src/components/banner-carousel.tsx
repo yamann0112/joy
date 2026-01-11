@@ -40,7 +40,7 @@ export function BannerCarousel() {
 
   if (isLoading) {
     return (
-      <div className="mx-12 sm:mx-14">
+      <div className="w-full">
         <div className="w-full aspect-[740/106] bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
       </div>
     );
@@ -51,7 +51,7 @@ export function BannerCarousel() {
   }
 
   return (
-    <div className="mx-12 sm:mx-14" data-testid="banner-carousel">
+    <div className="w-full" data-testid="banner-carousel">
       <div 
         ref={containerRef}
         className="relative w-full aspect-[740/106] overflow-hidden shadow-xl shadow-primary/20"
