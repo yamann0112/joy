@@ -177,6 +177,16 @@ export function TopBar() {
         <Button
           variant="outline"
           size="icon"
+          onClick={() => setIsChatOpen(true)}
+          className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
+          data-testid="button-chat"
+        >
+          <MessageCircle className="w-5 h-5 text-primary" />
+        </Button>
+
+        <Button
+          variant="outline"
+          size="icon"
           onClick={toggleTheme}
           className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
           data-testid="button-theme-toggle"
@@ -244,18 +254,8 @@ export function TopBar() {
         </DropdownMenu>
       </div>
 
-      <Button
-        variant="default"
-        size="icon"
-        onClick={() => setIsChatOpen(true)}
-        className="fixed bottom-6 right-6 z-[60] w-14 h-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90"
-        data-testid="button-chat"
-      >
-        <MessageCircle className="w-6 h-6" />
-      </Button>
-
       {isChatOpen && (
-        <Card className="fixed bottom-24 right-6 z-[59] w-80 h-[28rem] shadow-2xl border-primary/30 flex flex-col">
+        <Card className="fixed top-16 right-4 z-[59] w-80 h-[28rem] shadow-2xl border-primary/30 flex flex-col">
           <CardHeader className="p-3 border-b flex flex-row items-center gap-2">
             {selectedGroup && (
               <Button
