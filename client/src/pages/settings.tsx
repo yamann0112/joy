@@ -8,7 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RoleBadge } from "@/components/role-badge";
 import type { UserRoleType } from "@shared/schema";
-import { User, Camera, Shield, Bell, Lock, Palette, Film, Music, Save, Loader2 } from "lucide-react";
+import { User, Camera, Shield, Bell, Lock, Palette, Film, Music, Save, Loader2, Star, Globe, Trophy } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import type { User as UserType } from "@shared/schema";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -23,9 +26,54 @@ export default function Settings() {
   const [filmUrl, setFilmUrl] = useState("");
   const [musicUrl, setMusicUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [siteName, setSiteName] = useState("JOY");
+  const [showFlag, setShowFlag] = useState(true);
+  const [member1, setMember1] = useState<string | null>(null);
+  const [member2, setMember2] = useState<string | null>(null);
+  const [member3, setMember3] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   const isAdmin = user?.role === "ADMIN";
+
+  const { data: allUsers = [] } = useQuery<UserType[]>({
+    queryKey: ["/api/users"],
+    enabled: isAuthenticated && isAdmin,
+  });
+
+  const { data: brandingSettings } = useQuery({
+    queryKey: ["/api/settings/branding"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/branding");
+      if (!res.ok) return { siteName: "JOY", showFlag: true };
+      return res.json();
+    },
+    enabled: isAuthenticated && isAdmin,
+  });
+
+  const { data: featuredSettings } = useQuery({
+    queryKey: ["/api/settings/featured-members"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/featured-members");
+      if (!res.ok) return { member1: null, member2: null, member3: null };
+      return res.json();
+    },
+    enabled: isAuthenticated && isAdmin,
+  });
+
+  useEffect(() => {
+    if (brandingSettings) {
+      setSiteName(brandingSettings.siteName || "JOY");
+      setShowFlag(brandingSettings.showFlag !== false);
+    }
+  }, [brandingSettings]);
+
+  useEffect(() => {
+    if (featuredSettings) {
+      setMember1(featuredSettings.member1 || null);
+      setMember2(featuredSettings.member2 || null);
+      setMember3(featuredSettings.member3 || null);
+    }
+  }, [featuredSettings]);
   
   useEffect(() => {
     if (user?.displayName) {
@@ -130,6 +178,32 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings/music"] });
       toast({ title: "Basarili", description: "Muzik URL kaydedildi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const saveBrandingMutation = useMutation({
+    mutationFn: async (data: { siteName: string; showFlag: boolean }) => {
+      return apiRequest("POST", "/api/settings/branding", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/branding"] });
+      toast({ title: "Basarili", description: "Site ayarlari kaydedildi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const saveFeaturedMutation = useMutation({
+    mutationFn: async (data: { member1: string | null; member2: string | null; member3: string | null }) => {
+      return apiRequest("POST", "/api/settings/featured-members", data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/featured-members"] });
+      toast({ title: "Basarili", description: "Ayin elemanlari kaydedildi" });
     },
     onError: (error: any) => {
       toast({ title: "Hata", description: error.message, variant: "destructive" });
@@ -427,6 +501,140 @@ export default function Settings() {
                   data-testid="button-save-music-url"
                 >
                   {saveMusicMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Kaydet
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-primary" />
+                  Site Ayarlari
+                </CardTitle>
+                <CardDescription>Site ismi ve gorsel ayarlari (Admin)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="siteName">Site Ismi</Label>
+                  <Input
+                    id="siteName"
+                    placeholder="JOY"
+                    value={siteName}
+                    onChange={(e) => setSiteName(e.target.value)}
+                    data-testid="input-site-name"
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium">Turk Bayragi</p>
+                    <p className="text-sm text-muted-foreground">
+                      Header'da Turk bayragi goster
+                    </p>
+                  </div>
+                  <Switch
+                    checked={showFlag}
+                    onCheckedChange={setShowFlag}
+                    data-testid="switch-show-flag"
+                  />
+                </div>
+                <Button
+                  onClick={() => saveBrandingMutation.mutate({ siteName, showFlag })}
+                  disabled={saveBrandingMutation.isPending}
+                  data-testid="button-save-branding"
+                >
+                  {saveBrandingMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Kaydet
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-primary" />
+                  Ayin Elemanlari
+                </CardTitle>
+                <CardDescription>Dashboard'da gosterilecek en iyi 3 uye (Admin)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-xs font-bold text-black">1</span>
+                      1. Sirada (Altin)
+                    </Label>
+                    <Select value={member1 || "none"} onValueChange={(v) => setMember1(v === "none" ? null : v)}>
+                      <SelectTrigger data-testid="select-member1">
+                        <SelectValue placeholder="Kullanici secin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Secilmedi</SelectItem>
+                        {allUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>{u.displayName} (@{u.username})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-xs font-bold text-black">2</span>
+                      2. Sirada (Gumus)
+                    </Label>
+                    <Select value={member2 || "none"} onValueChange={(v) => setMember2(v === "none" ? null : v)}>
+                      <SelectTrigger data-testid="select-member2">
+                        <SelectValue placeholder="Kullanici secin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Secilmedi</SelectItem>
+                        {allUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>{u.displayName} (@{u.username})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="flex items-center gap-2">
+                      <span className="w-6 h-6 rounded-full bg-amber-700 flex items-center justify-center text-xs font-bold text-white">3</span>
+                      3. Sirada (Bronz)
+                    </Label>
+                    <Select value={member3 || "none"} onValueChange={(v) => setMember3(v === "none" ? null : v)}>
+                      <SelectTrigger data-testid="select-member3">
+                        <SelectValue placeholder="Kullanici secin" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Secilmedi</SelectItem>
+                        {allUsers.map((u) => (
+                          <SelectItem key={u.id} value={u.id}>{u.displayName} (@{u.username})</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => saveFeaturedMutation.mutate({ member1, member2, member3 })}
+                  disabled={saveFeaturedMutation.isPending}
+                  data-testid="button-save-featured"
+                >
+                  {saveFeaturedMutation.isPending ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                       Kaydediliyor...
