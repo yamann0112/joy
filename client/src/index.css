@@ -505,10 +505,10 @@
     border-radius: 3px;
   }
 
-  /* JOY Banner - FIXED position below announcement AND header controls */
+  /* JOY Banner - FIXED position directly below announcement bar */
   .joy-banner {
     position: fixed;
-    top: 92px; /* 40px announcement + 52px for header controls */
+    top: 40px; /* Directly below announcement bar h-10 = 40px */
     left: 0;
     right: 0;
     z-index: 25;
@@ -524,7 +524,7 @@
   }
 
   .joy-banner.no-announcement {
-    top: 52px; /* Just below header controls when no announcement */
+    top: 0; /* At the very top when no announcement */
   }
 
   .joy-banner-inner {
