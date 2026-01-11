@@ -291,10 +291,28 @@ function QuickLoginBox() {
   );
 }
 
+// Fake online user count hook
+function useFakeOnlineCount() {
+  const [count, setCount] = useState(() => Math.floor(Math.random() * 50) + 120);
+  
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCount(prev => {
+        const change = Math.floor(Math.random() * 7) - 3;
+        return Math.max(100, Math.min(200, prev + change));
+      });
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
+  
+  return count;
+}
+
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const { youtubeId } = useBackgroundMusic();
   const [isMuted, setIsMuted] = useState(true);
+  const onlineCount = useFakeOnlineCount();
 
   const toggleMute = () => {
     const iframe = document.getElementById('youtube-music-player') as HTMLIFrameElement;
@@ -323,6 +341,11 @@ export default function Home() {
             <span className="text-xl font-bold text-gradient-gold">JOY</span>
           </div>
           <div className="flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-background/95 border border-primary/30 text-xs" data-testid="home-online-count">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-primary font-medium">{onlineCount}</span>
+              <span className="text-muted-foreground">online</span>
+            </div>
             {youtubeId && (
               <Button
                 variant="outline"

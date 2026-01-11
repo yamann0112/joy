@@ -10,6 +10,30 @@ interface FilmSettings {
   filmUrl: string;
 }
 
+function convertToEmbedUrl(url: string): string {
+  if (!url) return "";
+  
+  // Already an embed URL
+  if (url.includes("/embed/")) {
+    return url;
+  }
+  
+  // YouTube watch URL: https://www.youtube.com/watch?v=VIDEO_ID
+  const watchMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/);
+  if (watchMatch) {
+    return `https://www.youtube.com/embed/${watchMatch[1]}?autoplay=1&rel=0`;
+  }
+  
+  // YouTube short URL: https://youtu.be/VIDEO_ID
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (shortMatch) {
+    return `https://www.youtube.com/embed/${shortMatch[1]}?autoplay=1&rel=0`;
+  }
+  
+  // For other URLs (Vimeo, direct video links, etc.), return as-is
+  return url;
+}
+
 export default function FilmPage() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const { hasAnnouncement } = useAnnouncement();
@@ -23,6 +47,8 @@ export default function FilmPage() {
     },
     enabled: isAuthenticated,
   });
+
+  const embedUrl = settings?.filmUrl ? convertToEmbedUrl(settings.filmUrl) : "";
 
   if (authLoading) {
     return (
@@ -38,14 +64,14 @@ export default function FilmPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
-      {settings?.filmUrl ? (
+      {embedUrl ? (
         <>
           <div className="absolute left-4 top-16 z-[50]">
             
           </div>
           <div className="fixed inset-0 bg-black z-[40]" style={{ top: hasAnnouncement ? "40px" : "0" }}>
             <iframe
-              src={settings.filmUrl}
+              src={embedUrl}
               className="w-full h-full border-0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
               allowFullScreen
