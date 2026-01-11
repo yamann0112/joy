@@ -1,10 +1,14 @@
-import { Link } from "wouter";
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import type { Announcement } from "@shared/schema";
-import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, ArrowRight, Star, Zap } from "lucide-react";
+import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, ArrowRight, Star, Zap, LogIn } from "lucide-react";
 
 const features = [
   {
@@ -65,6 +69,66 @@ function AnnouncementMarquee() {
   );
 }
 
+function QuickLoginBox() {
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
+  const { toast } = useToast();
+  const [, setLocation] = useLocation();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!username || !password) return;
+    
+    setIsLoading(true);
+    try {
+      const response = await apiRequest("POST", "/api/auth/login", { username, password });
+      const user = await response.json();
+      login(user);
+      setLocation("/dashboard");
+    } catch (error: any) {
+      toast({
+        title: "Hata",
+        description: error.message || "Giris yapilamadi",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleLogin} className="flex items-center gap-2">
+      <Input
+        type="text"
+        placeholder="Kullanici"
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        className="w-28 h-8 text-sm"
+        data-testid="input-quick-username"
+      />
+      <Input
+        type="password"
+        placeholder="Sifre"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        className="w-28 h-8 text-sm"
+        data-testid="input-quick-password"
+      />
+      <Button 
+        type="submit" 
+        size="sm" 
+        disabled={isLoading || !username || !password}
+        className="h-8"
+        data-testid="button-quick-login"
+      >
+        <LogIn className="w-4 h-4" />
+      </Button>
+    </form>
+  );
+}
+
 export default function Home() {
   const { isAuthenticated } = useAuth();
 
@@ -83,24 +147,18 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
               <Crown className="w-5 h-5 text-black" />
             </div>
-            <span className="text-xl font-bold text-gradient-gold">PLATFORM</span>
+            <span className="text-xl font-bold text-gradient-gold">JOY</span>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/login">
-              <Button data-testid="button-login-nav">
-                Giris Yap
-              </Button>
-            </Link>
-          </div>
+          <QuickLoginBox />
         </div>
       </header>
 
-      <main className="flex-1 pt-20">
+      <main className="flex-1 pt-16">
         <AnnouncementMarquee />
 
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -126,15 +184,6 @@ export default function Home() {
               PK etkinlikleri, ozel sohbet gruplari ve VIP avantajlariyla
               dolu premium ajans platformuna hos geldiniz.
             </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/login">
-                <Button size="lg" className="gap-2 text-lg px-8" data-testid="button-login-hero">
-                  <Crown className="w-5 h-5" />
-                  Giris Yap
-                </Button>
-              </Link>
-            </div>
 
             <p className="text-sm text-muted-foreground mt-6">
               Hesabiniz yok mu? Admin ile iletisime gecin.
@@ -164,7 +213,7 @@ export default function Home() {
                 <span className="text-gradient-gold">Ozellikler</span>
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Platform size en iyi deneyimi sunmak icin tasarlandi
+                JOY size en iyi deneyimi sunmak icin tasarlandi
               </p>
             </div>
 
@@ -196,12 +245,6 @@ export default function Home() {
               VIP uyelik ile ozel avantajlara erisin, etkinliklere oncelikli katilin
               ve premium destek alin.
             </p>
-            <Link href="/login">
-              <Button size="lg" className="gap-2">
-                <Sparkles className="w-5 h-5" />
-                Giris Yap
-              </Button>
-            </Link>
           </div>
         </section>
       </main>
@@ -212,10 +255,10 @@ export default function Home() {
             <div className="w-8 h-8 rounded-full gold-gradient flex items-center justify-center">
               <Crown className="w-4 h-4 text-black" />
             </div>
-            <span className="font-semibold text-gradient-gold">PLATFORM</span>
+            <span className="font-semibold text-gradient-gold">JOY</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            2024 Platform. Tum haklari saklidir.
+            2024 JOY. Tum haklari saklidir.
           </p>
         </div>
       </footer>

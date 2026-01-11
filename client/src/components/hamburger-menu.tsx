@@ -119,7 +119,7 @@ export function HamburgerMenu() {
               <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
                 <Crown className="w-5 h-5 text-black" />
               </div>
-              <span className="text-xl font-bold text-gradient-gold">PLATFORM</span>
+              <span className="text-xl font-bold text-gradient-gold">JOY</span>
             </div>
             <Button
               variant="ghost"
