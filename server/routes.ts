@@ -567,7 +567,8 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
-  app.get("/api/banners", requireAuth, async (req, res) => {
+  // Public banners endpoint - no auth required
+  app.get("/api/banners", async (req, res) => {
     const banners = await storage.getActiveBanners();
     res.json(banners);
   });
