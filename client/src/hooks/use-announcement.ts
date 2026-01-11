@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/auth-context";
 export function useAnnouncement() {
   const { isAuthenticated } = useAuth();
   
-  const { data: announcement, isLoading } = useQuery<Announcement | null>({
+  const { data: announcement, isLoading, isFetched } = useQuery<Announcement | null>({
     queryKey: ["/api/announcements/active"],
     queryFn: async () => {
       const res = await fetch("/api/announcements/active", { credentials: "include" });
@@ -16,9 +16,12 @@ export function useAnnouncement() {
     staleTime: 30000,
   });
 
+  const hasAnnouncement = isAuthenticated && !!announcement;
+
   return {
     announcement,
     isLoading,
-    hasAnnouncement: isAuthenticated && !!announcement,
+    isFetched,
+    hasAnnouncement,
   };
 }

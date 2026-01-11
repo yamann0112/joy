@@ -5,6 +5,7 @@ import { useAnnouncement } from "@/hooks/use-announcement";
 
 export function ThemeToggle() {
   const [isDark, setIsDark] = useState(true);
+  const [topOffset, setTopOffset] = useState(16);
   const { hasAnnouncement } = useAnnouncement();
 
   useEffect(() => {
@@ -18,8 +19,12 @@ export function ThemeToggle() {
     }
   }, []);
 
+  useEffect(() => {
+    setTopOffset(hasAnnouncement ? 44 : 16);
+  }, [hasAnnouncement]);
+
   const toggleTheme = () => {
-    const newTheme = !isDark ? "dark" : "light";
+    const newTheme = isDark ? "light" : "dark";
     setIsDark(!isDark);
     if (newTheme === "dark") {
       document.documentElement.classList.add("dark");
@@ -35,7 +40,7 @@ export function ThemeToggle() {
       size="icon"
       onClick={toggleTheme}
       className="fixed right-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
-      style={{ top: hasAnnouncement ? "44px" : "16px" }}
+      style={{ top: `${topOffset}px` }}
       data-testid="button-theme-toggle"
     >
       {isDark ? (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X, Home, Calendar, MessageSquare, Users, Shield, Settings, LogOut, Ticket, Crown, Star, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,9 +62,14 @@ function MenuItem({ href, icon, label, isActive, onClick }: MenuItemProps) {
 
 export function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
+  const [topOffset, setTopOffset] = useState(16);
   const [location] = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
   const { hasAnnouncement } = useAnnouncement();
+
+  useEffect(() => {
+    setTopOffset(hasAnnouncement ? 44 : 16);
+  }, [hasAnnouncement]);
 
   if (!isAuthenticated) {
     return null;
@@ -100,7 +105,7 @@ export function HamburgerMenu() {
         size="icon"
         onClick={() => setIsOpen(true)}
         className="fixed left-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
-        style={{ top: hasAnnouncement ? "44px" : "16px" }}
+        style={{ top: `${topOffset}px` }}
         data-testid="button-hamburger-menu"
       >
         <Menu className="w-6 h-6 text-primary" strokeWidth={3} />
