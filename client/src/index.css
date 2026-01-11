@@ -303,6 +303,49 @@
     to { opacity: 1; }
   }
 
+  .animate-fade-in {
+    animation: bannerFadeIn 0.5s ease-out;
+  }
+
+  @keyframes bannerFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .animate-slide-in {
+    animation: bannerSlideIn 0.5s ease-out;
+  }
+
+  @keyframes bannerSlideIn {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-zoom-in {
+    animation: bannerZoomIn 0.5s ease-out;
+  }
+
+  @keyframes bannerZoomIn {
+    from {
+      transform: scale(1.1);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  .text-shadow-lg {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  }
+
   .pulse-gold {
     animation: pulseGold 2s ease-in-out infinite;
   }

@@ -5,7 +5,8 @@ import {
   type ChatMessage, type InsertChatMessage,
   type Ticket, type InsertTicket,
   type Announcement, type InsertAnnouncement,
-  type AdminCreateUser
+  type AdminCreateUser,
+  type Banner, type InsertBanner
 } from "@shared/schema";
 import { randomUUID } from "crypto";
 
@@ -68,6 +69,13 @@ export interface IStorage {
   getVipApps(): Promise<VipApp[]>;
   createVipApp(app: Omit<VipApp, "id" | "createdAt">): Promise<VipApp>;
   deleteVipApp(id: string): Promise<boolean>;
+
+  getBanners(): Promise<Banner[]>;
+  getActiveBanners(): Promise<Banner[]>;
+  getBanner(id: string): Promise<Banner | undefined>;
+  createBanner(banner: InsertBanner & { createdBy: string }): Promise<Banner>;
+  updateBanner(id: string, updates: Partial<Banner>): Promise<Banner | undefined>;
+  deleteBanner(id: string): Promise<boolean>;
 }
 
 export class MemStorage implements IStorage {
@@ -79,6 +87,7 @@ export class MemStorage implements IStorage {
   private announcements: Map<string, Announcement>;
   private settings: Map<string, string>;
   private vipApps: Map<string, VipApp>;
+  private banners: Map<string, Banner>;
 
   constructor() {
     this.users = new Map();
@@ -89,6 +98,7 @@ export class MemStorage implements IStorage {
     this.announcements = new Map();
     this.settings = new Map();
     this.vipApps = new Map();
+    this.banners = new Map();
 
     this.seedData();
   }
@@ -523,6 +533,54 @@ export class MemStorage implements IStorage {
 
   async deleteVipApp(id: string): Promise<boolean> {
     return this.vipApps.delete(id);
+  }
+
+  async getBanners(): Promise<Banner[]> {
+    return Array.from(this.banners.values()).sort(
+      (a, b) => a.displayOrder - b.displayOrder
+    );
+  }
+
+  async getActiveBanners(): Promise<Banner[]> {
+    return Array.from(this.banners.values())
+      .filter(b => b.isActive)
+      .sort((a, b) => a.displayOrder - b.displayOrder);
+  }
+
+  async getBanner(id: string): Promise<Banner | undefined> {
+    return this.banners.get(id);
+  }
+
+  async createBanner(banner: InsertBanner & { createdBy: string }): Promise<Banner> {
+    const id = randomUUID();
+    const maxOrder = Math.max(0, ...Array.from(this.banners.values()).map(b => b.displayOrder));
+    const newBanner: Banner = {
+      id,
+      title: banner.title,
+      description: banner.description ?? null,
+      imageUrl: banner.imageUrl ?? null,
+      ctaLabel: banner.ctaLabel ?? null,
+      ctaUrl: banner.ctaUrl ?? null,
+      animationType: banner.animationType ?? "fade",
+      isActive: banner.isActive ?? true,
+      displayOrder: banner.displayOrder ?? maxOrder + 1,
+      createdBy: banner.createdBy,
+      createdAt: new Date(),
+    };
+    this.banners.set(id, newBanner);
+    return newBanner;
+  }
+
+  async updateBanner(id: string, updates: Partial<Banner>): Promise<Banner | undefined> {
+    const banner = this.banners.get(id);
+    if (!banner) return undefined;
+    const updated = { ...banner, ...updates };
+    this.banners.set(id, updated);
+    return updated;
+  }
+
+  async deleteBanner(id: string): Promise<boolean> {
+    return this.banners.delete(id);
   }
 }
 

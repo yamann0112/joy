@@ -1,7 +1,7 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertUserSchema, loginSchema, insertChatMessageSchema, insertTicketSchema, insertAnnouncementSchema, adminCreateUserSchema } from "@shared/schema";
+import { insertUserSchema, loginSchema, insertChatMessageSchema, insertTicketSchema, insertAnnouncementSchema, adminCreateUserSchema, insertBannerSchema } from "@shared/schema";
 import session from "express-session";
 import MemoryStore from "memorystore";
 
@@ -561,6 +561,64 @@ export async function registerRoutes(
     const deleted = await storage.deleteVipApp(req.params.id);
     if (!deleted) {
       return res.status(404).json({ message: "Uygulama bulunamadi" });
+    }
+    res.json({ success: true });
+  });
+
+  app.get("/api/banners", requireAuth, async (req, res) => {
+    const banners = await storage.getActiveBanners();
+    res.json(banners);
+  });
+
+  app.get("/api/admin/banners", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+    const banners = await storage.getBanners();
+    res.json(banners);
+  });
+
+  app.post("/api/admin/banners", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    try {
+      const validatedData = insertBannerSchema.parse(req.body);
+      const banner = await storage.createBanner({
+        ...validatedData,
+        createdBy: req.session.userId!,
+      });
+      res.status(201).json(banner);
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Banner oluşturulamadı" });
+    }
+  });
+
+  app.patch("/api/admin/banners/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const banner = await storage.updateBanner(req.params.id, req.body);
+    if (!banner) {
+      return res.status(404).json({ message: "Banner bulunamadı" });
+    }
+    res.json(banner);
+  });
+
+  app.delete("/api/admin/banners/:id", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const deleted = await storage.deleteBanner(req.params.id);
+    if (!deleted) {
+      return res.status(404).json({ message: "Banner bulunamadı" });
     }
     res.json({ success: true });
   });

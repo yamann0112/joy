@@ -15,8 +15,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { User, Announcement, UserRoleType } from "@shared/schema";
-import { Shield, Users, Calendar, Ticket as TicketIcon, MessageSquare, Crown, Activity, Plus, Trash2, Edit, Megaphone, Save } from "lucide-react";
+import type { User, Announcement, UserRoleType, Banner, BannerAnimationTypeValue } from "@shared/schema";
+import { Shield, Users, Calendar, Ticket as TicketIcon, MessageSquare, Crown, Activity, Plus, Trash2, Edit, Megaphone, Save, Image, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
@@ -29,6 +30,27 @@ export default function Admin() {
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newAnnouncement, setNewAnnouncement] = useState("");
+  const [isAddBannerOpen, setIsAddBannerOpen] = useState(false);
+  const [isEditBannerOpen, setIsEditBannerOpen] = useState(false);
+  const [selectedBanner, setSelectedBanner] = useState<Banner | null>(null);
+  const [newBanner, setNewBanner] = useState({
+    title: "",
+    description: "",
+    imageUrl: "",
+    ctaLabel: "",
+    ctaUrl: "",
+    animationType: "fade" as BannerAnimationTypeValue,
+    isActive: true,
+  });
+  const [editBannerData, setEditBannerData] = useState({
+    title: "",
+    description: "",
+    imageUrl: "",
+    ctaLabel: "",
+    ctaUrl: "",
+    animationType: "fade" as BannerAnimationTypeValue,
+    isActive: true,
+  });
 
   const [newUser, setNewUser] = useState({
     username: "",
@@ -61,6 +83,11 @@ export default function Admin() {
 
   const { data: announcements } = useQuery<Announcement[]>({
     queryKey: ["/api/announcements"],
+    enabled: isAuthenticated && user?.role === "ADMIN",
+  });
+
+  const { data: banners } = useQuery<Banner[]>({
+    queryKey: ["/api/admin/banners"],
     enabled: isAuthenticated && user?.role === "ADMIN",
   });
 
@@ -143,6 +170,69 @@ export default function Admin() {
     },
   });
 
+  const createBannerMutation = useMutation({
+    mutationFn: async (data: typeof newBanner) => {
+      const response = await apiRequest("POST", "/api/admin/banners", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banners"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/banners"] });
+      setIsAddBannerOpen(false);
+      setNewBanner({ title: "", description: "", imageUrl: "", ctaLabel: "", ctaUrl: "", animationType: "fade", isActive: true });
+      toast({ title: "Basarili", description: "Banner olusturuldu" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const updateBannerMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<Banner> }) => {
+      const response = await apiRequest("PATCH", `/api/admin/banners/${id}`, data);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banners"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/banners"] });
+      setIsEditBannerOpen(false);
+      setSelectedBanner(null);
+      toast({ title: "Basarili", description: "Banner guncellendi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const deleteBannerMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await apiRequest("DELETE", `/api/admin/banners/${id}`);
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/banners"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/banners"] });
+      toast({ title: "Basarili", description: "Banner silindi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const handleEditBanner = (b: Banner) => {
+    setSelectedBanner(b);
+    setEditBannerData({
+      title: b.title,
+      description: b.description || "",
+      imageUrl: b.imageUrl || "",
+      ctaLabel: b.ctaLabel || "",
+      ctaUrl: b.ctaUrl || "",
+      animationType: (b.animationType as BannerAnimationTypeValue) || "fade",
+      isActive: b.isActive,
+    });
+    setIsEditBannerOpen(true);
+  };
+
   const handleEditUser = (u: User) => {
     setSelectedUser(u);
     setEditUserData({
@@ -206,6 +296,10 @@ export default function Admin() {
             <TabsTrigger value="announcements" data-testid="tab-admin-announcements">
               <Megaphone className="w-4 h-4 mr-2" />
               Duyurular
+            </TabsTrigger>
+            <TabsTrigger value="banners" data-testid="tab-admin-banners">
+              <Image className="w-4 h-4 mr-2" />
+              Bannerlar
             </TabsTrigger>
           </TabsList>
 
@@ -503,6 +597,280 @@ export default function Admin() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="banners" className="mt-6">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0">
+                <CardTitle className="flex items-center gap-2">
+                  <Image className="w-5 h-5 text-primary" />
+                  Banner Yonetimi
+                </CardTitle>
+                <Dialog open={isAddBannerOpen} onOpenChange={setIsAddBannerOpen}>
+                  <DialogTrigger asChild>
+                    <Button data-testid="button-add-banner">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Banner Ekle
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Yeni Banner Olustur</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
+                      <div className="space-y-2">
+                        <Label>Baslik *</Label>
+                        <Input
+                          data-testid="input-new-banner-title"
+                          value={newBanner.title}
+                          onChange={(e) => setNewBanner({ ...newBanner, title: e.target.value })}
+                          placeholder="Banner basligi"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Aciklama</Label>
+                        <Textarea
+                          data-testid="input-new-banner-description"
+                          value={newBanner.description}
+                          onChange={(e) => setNewBanner({ ...newBanner, description: e.target.value })}
+                          placeholder="Banner aciklamasi (opsiyonel)"
+                          rows={2}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Gorsel URL</Label>
+                        <Input
+                          data-testid="input-new-banner-image"
+                          value={newBanner.imageUrl}
+                          onChange={(e) => setNewBanner({ ...newBanner, imageUrl: e.target.value })}
+                          placeholder="https://example.com/image.jpg (opsiyonel)"
+                        />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Buton Metni</Label>
+                          <Input
+                            data-testid="input-new-banner-cta-label"
+                            value={newBanner.ctaLabel}
+                            onChange={(e) => setNewBanner({ ...newBanner, ctaLabel: e.target.value })}
+                            placeholder="Ornegin: Daha Fazla"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Buton Linki</Label>
+                          <Input
+                            data-testid="input-new-banner-cta-url"
+                            value={newBanner.ctaUrl}
+                            onChange={(e) => setNewBanner({ ...newBanner, ctaUrl: e.target.value })}
+                            placeholder="https://..."
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Animasyon Tipi</Label>
+                        <Select
+                          value={newBanner.animationType}
+                          onValueChange={(v) => setNewBanner({ ...newBanner, animationType: v as BannerAnimationTypeValue })}
+                        >
+                          <SelectTrigger data-testid="select-new-banner-animation">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">Animasyon Yok</SelectItem>
+                            <SelectItem value="fade">Fade (Solma)</SelectItem>
+                            <SelectItem value="slide">Slide (Kayma)</SelectItem>
+                            <SelectItem value="zoom">Zoom (Buyume)</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <Label>Aktif</Label>
+                        <Switch
+                          checked={newBanner.isActive}
+                          onCheckedChange={(checked) => setNewBanner({ ...newBanner, isActive: checked })}
+                          data-testid="switch-new-banner-active"
+                        />
+                      </div>
+                      <Button
+                        className="w-full"
+                        data-testid="button-submit-new-banner"
+                        onClick={() => createBannerMutation.mutate(newBanner)}
+                        disabled={createBannerMutation.isPending || !newBanner.title.trim()}
+                      >
+                        {createBannerMutation.isPending ? "Olusturuluyor..." : "Banner Olustur"}
+                      </Button>
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              </CardHeader>
+              <CardContent>
+                {banners && banners.length > 0 ? (
+                  <div className="space-y-3">
+                    {banners.map((b) => (
+                      <div
+                        key={b.id}
+                        className={`p-4 rounded-lg border ${b.isActive ? "border-primary bg-primary/5" : "border-border bg-card"}`}
+                        data-testid={`banner-${b.id}`}
+                      >
+                        <div className="flex items-start gap-4">
+                          {b.imageUrl && (
+                            <div
+                              className="w-24 h-16 rounded bg-cover bg-center border border-border flex-shrink-0"
+                              style={{ backgroundImage: `url(${b.imageUrl})` }}
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-medium truncate">{b.title}</span>
+                              {b.isActive ? (
+                                <Badge className="bg-primary text-primary-foreground">Aktif</Badge>
+                              ) : (
+                                <Badge variant="outline">Pasif</Badge>
+                              )}
+                              <Badge variant="outline" className="capitalize">{b.animationType}</Badge>
+                            </div>
+                            {b.description && (
+                              <p className="text-sm text-muted-foreground line-clamp-1">{b.description}</p>
+                            )}
+                            {b.ctaLabel && (
+                              <p className="text-xs text-primary mt-1">Buton: {b.ctaLabel}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 flex-shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => updateBannerMutation.mutate({ id: b.id, data: { isActive: !b.isActive } })}
+                              data-testid={`button-toggle-banner-${b.id}`}
+                            >
+                              {b.isActive ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleEditBanner(b)}
+                              data-testid={`button-edit-banner-${b.id}`}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => {
+                                if (confirm("Bu banneri silmek istediginize emin misiniz?")) {
+                                  deleteBannerMutation.mutate(b.id);
+                                }
+                              }}
+                              data-testid={`button-delete-banner-${b.id}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Image className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                    <p>Henuz banner yok</p>
+                    <p className="text-sm mt-2">Anasayfada gorunecek bannerlar ekleyebilirsiniz</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Dialog open={isEditBannerOpen} onOpenChange={setIsEditBannerOpen}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Banner Duzenle</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
+                  <div className="space-y-2">
+                    <Label>Baslik *</Label>
+                    <Input
+                      data-testid="input-edit-banner-title"
+                      value={editBannerData.title}
+                      onChange={(e) => setEditBannerData({ ...editBannerData, title: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Aciklama</Label>
+                    <Textarea
+                      data-testid="input-edit-banner-description"
+                      value={editBannerData.description}
+                      onChange={(e) => setEditBannerData({ ...editBannerData, description: e.target.value })}
+                      rows={2}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Gorsel URL</Label>
+                    <Input
+                      data-testid="input-edit-banner-image"
+                      value={editBannerData.imageUrl}
+                      onChange={(e) => setEditBannerData({ ...editBannerData, imageUrl: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Buton Metni</Label>
+                      <Input
+                        data-testid="input-edit-banner-cta-label"
+                        value={editBannerData.ctaLabel}
+                        onChange={(e) => setEditBannerData({ ...editBannerData, ctaLabel: e.target.value })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Buton Linki</Label>
+                      <Input
+                        data-testid="input-edit-banner-cta-url"
+                        value={editBannerData.ctaUrl}
+                        onChange={(e) => setEditBannerData({ ...editBannerData, ctaUrl: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Animasyon Tipi</Label>
+                    <Select
+                      value={editBannerData.animationType}
+                      onValueChange={(v) => setEditBannerData({ ...editBannerData, animationType: v as BannerAnimationTypeValue })}
+                    >
+                      <SelectTrigger data-testid="select-edit-banner-animation">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Animasyon Yok</SelectItem>
+                        <SelectItem value="fade">Fade (Solma)</SelectItem>
+                        <SelectItem value="slide">Slide (Kayma)</SelectItem>
+                        <SelectItem value="zoom">Zoom (Buyume)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <Label>Aktif</Label>
+                    <Switch
+                      checked={editBannerData.isActive}
+                      onCheckedChange={(checked) => setEditBannerData({ ...editBannerData, isActive: checked })}
+                      data-testid="switch-edit-banner-active"
+                    />
+                  </div>
+                  <Button
+                    className="w-full"
+                    data-testid="button-submit-edit-banner"
+                    onClick={() => {
+                      if (selectedBanner) {
+                        updateBannerMutation.mutate({ id: selectedBanner.id, data: editBannerData });
+                      }
+                    }}
+                    disabled={updateBannerMutation.isPending || !editBannerData.title.trim()}
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {updateBannerMutation.isPending ? "Kaydediliyor..." : "Degisiklikleri Kaydet"}
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </main>
