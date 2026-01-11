@@ -68,18 +68,15 @@ export function HamburgerMenuTrigger() {
   const { setIsOpen } = useContext(MenuContext);
   
   return (
-    <div className="relative">
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setIsOpen(true)}
-        className="ml-4 mt-4 bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
-        style={{ position: 'static' }}
-        data-testid="button-hamburger-menu"
-      >
-        <Menu className="w-6 h-6 text-primary" strokeWidth={3} />
-      </Button>
-    </div>
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={() => setIsOpen(true)}
+      className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 w-8 h-8 sm:w-9 sm:h-9"
+      data-testid="button-hamburger-menu"
+    >
+      <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-primary" strokeWidth={3} />
+    </Button>
   );
 }
 

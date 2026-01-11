@@ -108,8 +108,8 @@ export default function Tickets() {
   };
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-6">
         
         <div className="flex items-center justify-between mb-4">
           <div>

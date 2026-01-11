@@ -172,36 +172,36 @@ export function TopBar() {
   return (
     <>
       <div
-        className="fixed left-4 z-[60]"
+        className="fixed left-2 sm:left-4 z-[60]"
         style={{ top: `${topOffset}px` }}
       >
         <HamburgerMenuTrigger />
       </div>
       <div
-        className="fixed right-4 z-[60] flex items-center gap-2"
+        className="fixed right-2 sm:right-4 z-[60] flex items-center gap-1 sm:gap-2"
         style={{ top: `${topOffset}px` }}
       >
         <Button
           variant="outline"
           size="icon"
           onClick={() => setIsChatOpen(true)}
-          className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
+          className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 w-8 h-8 sm:w-9 sm:h-9"
           data-testid="button-chat"
         >
-          <MessageCircle className="w-5 h-5 text-primary" />
+          <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
         </Button>
 
         <Button
           variant="outline"
           size="icon"
           onClick={toggleTheme}
-          className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
+          className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 w-8 h-8 sm:w-9 sm:h-9"
           data-testid="button-theme-toggle"
         >
           {isDark ? (
-            <Sun className="w-5 h-5 text-primary" />
+            <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           ) : (
-            <Moon className="w-5 h-5 text-primary" />
+            <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
           )}
         </Button>
 
@@ -210,12 +210,12 @@ export function TopBar() {
           <Button
             variant="outline"
             size="icon"
-            className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 p-0 overflow-hidden"
+            className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 p-0 overflow-hidden w-8 h-8 sm:w-9 sm:h-9"
             data-testid="button-profile-menu"
           >
-            <Avatar className="w-9 h-9">
+            <Avatar className="w-8 h-8 sm:w-9 sm:h-9">
               <AvatarImage src={user?.avatar || undefined} />
-              <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
+              <AvatarFallback className="bg-primary/20 text-primary text-xs sm:text-sm font-semibold">
                 {user?.displayName?.charAt(0).toUpperCase() || "U"}
               </AvatarFallback>
             </Avatar>
@@ -262,7 +262,7 @@ export function TopBar() {
       </div>
 
       {isChatOpen && (
-        <Card className="fixed top-16 right-4 z-[59] w-72 h-80 shadow-2xl border-primary/30 flex flex-col">
+        <Card className="fixed top-14 sm:top-16 right-2 sm:right-4 left-2 sm:left-auto z-[59] sm:w-72 h-[70vh] sm:h-80 max-h-[400px] shadow-2xl border-primary/30 flex flex-col">
           <CardHeader className="p-3 border-b flex flex-row items-center gap-2">
             {selectedGroup && (
               <Button

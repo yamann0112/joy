@@ -106,7 +106,7 @@ export default function Chat() {
   const selectedGroupData = groups?.find((g) => g.id === selectedGroup);
 
   return (
-    <div className={`min-h-screen bg-background flex flex-col ${hasAnnouncement ? "pt-10" : ""}`}>
+    <div className={`min-h-screen bg-background flex flex-col ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
       <main className="flex-1 max-w-7xl mx-auto px-4 py-6 w-full">
         
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-180px)]">

@@ -30,12 +30,12 @@ export default function Dashboard() {
   const canAccessVip = userRole === "VIP" || userRole === "MOD" || userRole === "ADMIN";
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <div className="pt-4 pb-2 px-4">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-14" : "pt-12"}`}>
+      <div className="pb-2 px-2 sm:px-4">
         <BannerCarousel />
       </div>
-      <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-8">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-2">
               <CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -44,19 +44,19 @@ export default function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-center gap-4 p-4 rounded-lg bg-card border border-card-border">
-                <Avatar className="w-16 h-16 border-2 border-primary">
+              <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 p-3 sm:p-4 rounded-lg bg-card border border-card-border">
+                <Avatar className="w-14 h-14 sm:w-16 sm:h-16 border-2 border-primary">
                   <AvatarImage src={user?.avatar || undefined} />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xl">
+                  <AvatarFallback className="bg-primary/20 text-primary text-lg sm:text-xl">
                     {user?.displayName?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-lg">{user?.displayName}</h3>
-                  <p className="text-sm text-muted-foreground">@{user?.username}</p>
-                  <div className="flex items-center gap-2 mt-2">
+                <div className="flex-1 text-center sm:text-left">
+                  <h3 className="font-semibold text-base sm:text-lg">{user?.displayName}</h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground">@{user?.username}</p>
+                  <div className="flex items-center justify-center sm:justify-start gap-2 mt-2">
                     <RoleBadge role={userRole} />
-                    <Badge variant="outline">Level {user?.level || 1}</Badge>
+                    <Badge variant="outline" className="text-xs">Level {user?.level || 1}</Badge>
                   </div>
                 </div>
               </div>
@@ -79,43 +79,43 @@ export default function Dashboard() {
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-2">
               <CardTitle className="text-lg font-semibold">Hizli Erisim</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
+            <CardContent className="grid grid-cols-2 gap-2 sm:gap-3">
               <Link href="/events">
-                <Button variant="outline" className="w-full h-16 flex-col gap-1" data-testid="quick-link-events">
-                  <Calendar className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Etkinlikler</span>
+                <Button variant="outline" className="w-full h-12 sm:h-16 flex-col gap-0.5 sm:gap-1" data-testid="quick-link-events">
+                  <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <span className="text-[10px] sm:text-xs">Etkinlikler</span>
                 </Button>
               </Link>
               <Link href="/chat">
-                <Button variant="outline" className="w-full h-16 flex-col gap-1" data-testid="quick-link-chat">
-                  <MessageSquare className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Sohbet</span>
+                <Button variant="outline" className="w-full h-12 sm:h-16 flex-col gap-0.5 sm:gap-1" data-testid="quick-link-chat">
+                  <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <span className="text-[10px] sm:text-xs">Sohbet</span>
                 </Button>
               </Link>
               <Link href="/film">
-                <Button variant="outline" className="w-full h-16 flex-col gap-1" data-testid="quick-link-film">
-                  <Film className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Film</span>
+                <Button variant="outline" className="w-full h-12 sm:h-16 flex-col gap-0.5 sm:gap-1" data-testid="quick-link-film">
+                  <Film className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <span className="text-[10px] sm:text-xs">Film</span>
                 </Button>
               </Link>
               <Link href="/tickets">
-                <Button variant="outline" className="w-full h-16 flex-col gap-1" data-testid="quick-link-tickets">
-                  <Ticket className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Destek</span>
+                <Button variant="outline" className="w-full h-12 sm:h-16 flex-col gap-0.5 sm:gap-1" data-testid="quick-link-tickets">
+                  <Ticket className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <span className="text-[10px] sm:text-xs">Destek</span>
                 </Button>
               </Link>
               {canAccessVip && (
                 <Link href="/vip">
-                  <Button variant="outline" className="w-full h-16 flex-col gap-1 col-span-2 border-primary/50" data-testid="quick-link-vip">
-                    <Crown className="w-5 h-5 text-primary" />
-                    <span className="text-xs">VIP Uygulamalar</span>
+                  <Button variant="outline" className="w-full h-12 sm:h-16 flex-col gap-0.5 sm:gap-1 col-span-2 border-primary/50" data-testid="quick-link-vip">
+                    <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                    <span className="text-[10px] sm:text-xs">VIP Uygulamalar</span>
                   </Button>
                 </Link>
               )}
               <Link href="/users">
-                <Button variant="outline" className="w-full h-16 flex-col gap-1 col-span-2" data-testid="quick-link-users">
-                  <Users className="w-5 h-5 text-primary" />
-                  <span className="text-xs">Kullanicilar</span>
+                <Button variant="outline" className="w-full h-12 sm:h-16 flex-col gap-0.5 sm:gap-1 col-span-2" data-testid="quick-link-users">
+                  <Users className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+                  <span className="text-[10px] sm:text-xs">Kullanicilar</span>
                 </Button>
               </Link>
             </CardContent>
