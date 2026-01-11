@@ -7,7 +7,6 @@ import { AuthProvider } from "@/lib/auth-context";
 import { GlobalAnnouncement } from "@/components/global-announcement";
 import { HamburgerMenu } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
-import { FloatingChat } from "@/components/floating-chat";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -50,7 +49,6 @@ function App() {
           <GlobalAnnouncement />
           <HamburgerMenu />
           <TopBar />
-          <FloatingChat />
           <Toaster />
           <Router />
         </AuthProvider>
