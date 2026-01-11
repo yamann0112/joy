@@ -40,7 +40,7 @@ export function BannerCarousel() {
 
   if (isLoading) {
     return (
-      <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
+      <div className="w-full aspect-[740/106] bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
     );
   }
 
@@ -49,7 +49,7 @@ export function BannerCarousel() {
   }
 
   return (
-    <div className="absolute inset-0" data-testid="banner-carousel">
+    <div className="w-full aspect-[740/106]" data-testid="banner-carousel">
       <div 
         ref={containerRef}
         className="relative w-full h-full overflow-hidden"

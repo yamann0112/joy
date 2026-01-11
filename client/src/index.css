@@ -525,16 +525,7 @@
   .joy-banner-inner {
     width: 100%;
     max-width: 740px;
-    aspect-ratio: 740 / 106;
     position: relative;
-    overflow: hidden;
-  }
-
-  .joy-banner-inner img,
-  .joy-banner-inner > div {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    overflow: visible;
   }
 }
