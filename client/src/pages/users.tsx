@@ -11,9 +11,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { User, UserRoleType } from "@shared/schema";
 import { Users, Search, UserPlus } from "lucide-react";
 import { Redirect } from "wouter";
+import { useAnnouncement } from "@/hooks/use-announcement";
 
 export default function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: users, isLoading } = useQuery<User[]>({
@@ -44,25 +46,8 @@ export default function UsersPage() {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <HamburgerMenu />
-
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gradient-gold">Kullanıcılar</h1>
-              <p className="text-sm text-muted-foreground">Platform üyelerini görüntüleyin</p>
-            </div>
-            {user?.role === "ADMIN" && (
-              <Button className="gap-2" data-testid="button-add-user">
-                <UserPlus className="w-4 h-4" />
-                Kullanıcı Ekle
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <div className="relative max-w-md">

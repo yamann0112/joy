@@ -18,9 +18,11 @@ import { useToast } from "@/hooks/use-toast";
 import type { User, ChatGroup, UserRoleType } from "@shared/schema";
 import { Shield, Users, Plus, Trash2, Edit, Save, MessageSquare, Hash, UserPlus, UserMinus } from "lucide-react";
 import { Redirect } from "wouter";
+import { useAnnouncement } from "@/hooks/use-announcement";
 
 export default function Management() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
   const { toast } = useToast();
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
   const [newGroup, setNewGroup] = useState({ name: "", description: "" });
@@ -100,27 +102,8 @@ export default function Management() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <HamburgerMenu />
-
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
-                <Shield className="w-5 h-5 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gradient-gold">Yonetim</h1>
-                <p className="text-sm text-muted-foreground">
-                  {isAdmin ? "Admin Yonetim Paneli" : "Moderator Paneli"}
-                </p>
-              </div>
-            </div>
-            <RoleBadge role={(user?.role as UserRoleType) || "USER"} />
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
         <Tabs defaultValue="users">

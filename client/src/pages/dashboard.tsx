@@ -11,9 +11,11 @@ import type { Event, User, UserRoleType } from "@shared/schema";
 import { Calendar, MessageSquare, Users, Ticket, Sparkles, Crown } from "lucide-react";
 import { Link, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useAnnouncement } from "@/hooks/use-announcement";
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
 
   const { data: events, isLoading: eventsLoading } = useQuery<Event[]>({
     queryKey: ["/api/events"],
@@ -46,7 +48,7 @@ export default function Dashboard() {
   const liveEvents = events?.filter((e) => e.isLive) || [];
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <HamburgerMenu />
 
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">

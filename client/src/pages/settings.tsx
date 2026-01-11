@@ -10,9 +10,11 @@ import { RoleBadge } from "@/components/role-badge";
 import type { UserRoleType } from "@shared/schema";
 import { User, Camera, Shield, Bell, Lock, Palette } from "lucide-react";
 import { Redirect } from "wouter";
+import { useAnnouncement } from "@/hooks/use-announcement";
 
 export default function Settings() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
 
   if (authLoading) {
     return (
@@ -27,17 +29,8 @@ export default function Settings() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <HamburgerMenu />
-
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
-          <div>
-            <h1 className="text-2xl font-bold text-gradient-gold">Ayarlar</h1>
-            <p className="text-sm text-muted-foreground">Hesap ve profil ayarlarınız</p>
-          </div>
-        </div>
-      </header>
 
       <main className="max-w-3xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <Card>

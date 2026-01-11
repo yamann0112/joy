@@ -10,9 +10,11 @@ import { useQuery } from "@tanstack/react-query";
 import type { Event } from "@shared/schema";
 import { Calendar, Search, Plus, Filter } from "lucide-react";
 import { Redirect } from "wouter";
+import { useAnnouncement } from "@/hooks/use-announcement";
 
 export default function Events() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
 
@@ -46,27 +48,22 @@ export default function Events() {
   const canCreateEvent = user?.role === "ADMIN" || user?.role === "MOD";
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <HamburgerMenu />
 
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gradient-gold">PK / Etkinlikler</h1>
-              <p className="text-sm text-muted-foreground">Tüm etkinlikleri görüntüleyin</p>
-            </div>
-            {canCreateEvent && (
-              <Button className="gap-2" data-testid="button-create-event">
-                <Plus className="w-4 h-4" />
-                Yeni Etkinlik
-              </Button>
-            )}
-          </div>
-        </div>
-      </header>
-
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gradient-gold">PK / Etkinlikler</h1>
+            <p className="text-sm text-muted-foreground">Tüm etkinlikleri görüntüleyin</p>
+          </div>
+          {canCreateEvent && (
+            <Button className="gap-2" data-testid="button-create-event">
+              <Plus className="w-4 h-4" />
+              Yeni Etkinlik
+            </Button>
+          )}
+        </div>
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

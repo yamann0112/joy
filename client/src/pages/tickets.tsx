@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { HamburgerMenu } from "@/components/hamburger-menu";
+import { useAnnouncement } from "@/hooks/use-announcement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,7 @@ const getStatusIcon = (status: string) => {
 
 export default function Tickets() {
   const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
@@ -106,23 +108,22 @@ export default function Tickets() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
       <HamburgerMenu />
 
-      <header className="border-b border-border bg-card/50 backdrop-blur-sm sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gradient-gold">Destek</h1>
-              <p className="text-sm text-muted-foreground">Destek taleplerinizi yönetin</p>
-            </div>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="gap-2" data-testid="button-create-ticket">
-                  <Plus className="w-4 h-4" />
-                  Yeni Talep
-                </Button>
-              </DialogTrigger>
+      <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gradient-gold">Destek</h1>
+            <p className="text-sm text-muted-foreground">Destek taleplerinizi yönetin</p>
+          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2" data-testid="button-create-ticket">
+                <Plus className="w-4 h-4" />
+                Yeni Talep
+              </Button>
+            </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Yeni Destek Talebi</DialogTitle>
@@ -182,12 +183,9 @@ export default function Tickets() {
                   </form>
                 </Form>
               </DialogContent>
-            </Dialog>
-          </div>
+          </Dialog>
         </div>
-      </header>
 
-      <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4">
         {isLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map((i) => (

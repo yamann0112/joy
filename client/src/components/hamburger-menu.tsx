@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth-context";
 import { UserRole, type UserRoleType } from "@shared/schema";
+import { useAnnouncement } from "@/hooks/use-announcement";
 
 const getRoleBadgeStyle = (role: UserRoleType) => {
   switch (role) {
@@ -63,6 +64,7 @@ export function HamburgerMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [location] = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
+  const { hasAnnouncement } = useAnnouncement();
 
   if (!isAuthenticated) {
     return null;
@@ -93,7 +95,7 @@ export function HamburgerMenu() {
         variant="ghost"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="fixed top-4 left-4 z-50"
+        className={`fixed left-4 z-50 ${hasAnnouncement ? "top-12" : "top-4"}`}
         data-testid="button-hamburger-menu"
       >
         <Menu className="w-6 h-6" />
