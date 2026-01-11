@@ -72,16 +72,8 @@ export function BannerCarousel() {
                 <div
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: `url(${banner.imageUrl})` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/40" />
-                </div>
-              ) : (
-                <div className="absolute inset-0 bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-                  <div className="absolute inset-0 gold-gradient opacity-10" />
-                  <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-primary/5 rounded-full blur-3xl" />
-                  <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-primary/10 rounded-full blur-2xl" />
-                </div>
-              )}
+                />
+              ) : null}
               
               <div className="relative h-full flex items-center gap-2 sm:gap-4 px-2 sm:px-4 py-1 sm:py-2">
                 <div className="flex-1 min-w-0">

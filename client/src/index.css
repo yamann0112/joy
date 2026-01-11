@@ -515,7 +515,12 @@
     width: 100%;
     display: flex;
     justify-content: center;
-    background: transparent;
+    background: transparent !important;
+    pointer-events: none;
+  }
+  
+  .joy-banner * {
+    pointer-events: auto;
   }
 
   .joy-banner.no-announcement {
