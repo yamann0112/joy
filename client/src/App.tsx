@@ -7,6 +7,8 @@ import { AuthProvider } from "@/lib/auth-context";
 import { GlobalAnnouncement } from "@/components/global-announcement";
 import { HamburgerMenuProvider, HamburgerMenuSidebar } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
+import { BannerCarousel } from "@/components/banner-carousel";
+import { useLocation } from "wouter";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -41,17 +43,33 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const [location] = useLocation();
+  const showBanner = location === "/dashboard";
+  
+  return (
+    <>
+      <GlobalAnnouncement />
+      {showBanner && (
+        <div className="w-full bg-background py-2 px-4">
+          <BannerCarousel />
+        </div>
+      )}
+      <HamburgerMenuSidebar />
+      <TopBar />
+      <Toaster />
+      <Router />
+    </>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
           <HamburgerMenuProvider>
-            <GlobalAnnouncement />
-            <HamburgerMenuSidebar />
-            <TopBar />
-            <Toaster />
-            <Router />
+            <AppContent />
           </HamburgerMenuProvider>
         </AuthProvider>
       </TooltipProvider>

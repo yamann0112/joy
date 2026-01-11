@@ -222,7 +222,7 @@ export default function Admin() {
   const handleEditBanner = (b: Banner) => {
     setSelectedBanner(b);
     setEditBannerData({
-      title: b.title,
+      title: b.title || "",
       description: b.description || "",
       imageUrl: b.imageUrl || "",
       ctaLabel: b.ctaLabel || "",
@@ -619,7 +619,7 @@ export default function Admin() {
                     </DialogHeader>
                     <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
                       <div className="space-y-2">
-                        <Label>Baslik *</Label>
+                        <Label>Baslik (opsiyonel)</Label>
                         <Input
                           data-testid="input-new-banner-title"
                           value={newBanner.title}
@@ -695,7 +695,7 @@ export default function Admin() {
                         className="w-full"
                         data-testid="button-submit-new-banner"
                         onClick={() => createBannerMutation.mutate(newBanner)}
-                        disabled={createBannerMutation.isPending || !newBanner.title.trim()}
+                        disabled={createBannerMutation.isPending}
                       >
                         {createBannerMutation.isPending ? "Olusturuluyor..." : "Banner Olustur"}
                       </Button>
@@ -721,7 +721,7 @@ export default function Admin() {
                           )}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="font-medium truncate">{b.title}</span>
+                              <span className="font-medium truncate">{b.title || "(Baslıksiz)"}</span>
                               {b.isActive ? (
                                 <Badge className="bg-primary text-primary-foreground">Aktif</Badge>
                               ) : (
@@ -788,7 +788,7 @@ export default function Admin() {
                 </DialogHeader>
                 <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
                   <div className="space-y-2">
-                    <Label>Baslik *</Label>
+                    <Label>Baslik (opsiyonel)</Label>
                     <Input
                       data-testid="input-edit-banner-title"
                       value={editBannerData.title}
@@ -863,7 +863,7 @@ export default function Admin() {
                         updateBannerMutation.mutate({ id: selectedBanner.id, data: editBannerData });
                       }
                     }}
-                    disabled={updateBannerMutation.isPending || !editBannerData.title.trim()}
+                    disabled={updateBannerMutation.isPending}
                   >
                     <Save className="w-4 h-4 mr-2" />
                     {updateBannerMutation.isPending ? "Kaydediliyor..." : "Degisiklikleri Kaydet"}

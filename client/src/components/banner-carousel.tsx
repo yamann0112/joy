@@ -87,9 +87,11 @@ export function BannerCarousel() {
               
               <div className="relative h-full flex items-center gap-4 px-4 py-2">
                 <div className="flex-1 min-w-0">
-                  <h2 className="text-lg md:text-xl font-bold text-white drop-shadow-lg truncate">
-                    {banner.title}
-                  </h2>
+                  {banner.title && (
+                    <h2 className="text-lg md:text-xl font-bold text-white drop-shadow-lg truncate">
+                      {banner.title}
+                    </h2>
+                  )}
                   {banner.description && (
                     <p className="text-white/80 text-xs md:text-sm max-w-md truncate">
                       {banner.description}

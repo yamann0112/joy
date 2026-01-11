@@ -166,7 +166,7 @@ export type BannerAnimationTypeValue = typeof BannerAnimationType[keyof typeof B
 
 export const banners = pgTable("banners", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  title: text("title").notNull(),
+  title: text("title"),
   description: text("description"),
   imageUrl: text("image_url"),
   ctaLabel: text("cta_label"),
@@ -188,7 +188,7 @@ export const insertBannerSchema = createInsertSchema(banners).pick({
   isActive: true,
   displayOrder: true,
 }).extend({
-  title: z.string().min(1, "Başlık gerekli"),
+  title: z.string().optional(),
   description: z.string().optional(),
   imageUrl: z.string().optional(),
   ctaLabel: z.string().optional(),
