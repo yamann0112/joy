@@ -29,7 +29,7 @@ export default function Dashboard() {
   const canAccessVip = userRole === "VIP" || userRole === "MOD" || userRole === "ADMIN";
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-[146px]" : "pt-[106px]"}`}>
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-[calc(40px+min(100vw*106/740,106px))]" : "pt-[min(100vw*106/740,106px)]"}`}>
       {/* Main content - banner is now in App.tsx */}
       <div className="pt-4">
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-8">
