@@ -44,9 +44,9 @@ interface MessageWithUser extends ChatMessage {
   user?: UserType;
 }
 
-interface ChatGroupWithPrivate extends ChatGroup {
-  isPrivate?: boolean;
-  participants?: string[] | null;
+interface ChatGroupWithPrivate extends Omit<ChatGroup, 'isPrivate' | 'participants'> {
+  isPrivate: boolean;
+  participants: string[] | null;
 }
 
 export function TopBar() {
@@ -255,7 +255,7 @@ export function TopBar() {
       </div>
 
       {isChatOpen && (
-        <Card className="fixed top-16 right-4 z-[59] w-80 h-[28rem] shadow-2xl border-primary/30 flex flex-col">
+        <Card className="fixed top-16 right-4 z-[59] w-72 h-80 shadow-2xl border-primary/30 flex flex-col">
           <CardHeader className="p-3 border-b flex flex-row items-center gap-2">
             {selectedGroup && (
               <Button
@@ -290,7 +290,7 @@ export function TopBar() {
                     <UserPlus className="w-4 h-4" />
                   </Button>
                 </DialogTrigger>
-                <DialogContent>
+                <DialogContent className="z-[100]">
                   <DialogHeader>
                     <DialogTitle>Ozel Sohbet Baslat</DialogTitle>
                   </DialogHeader>
@@ -335,7 +335,7 @@ export function TopBar() {
                     <Trash2 className="w-4 h-4" />
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="z-[100]">
                   <AlertDialogHeader>
                     <AlertDialogTitle>Sohbeti Temizle</AlertDialogTitle>
                     <AlertDialogDescription>
