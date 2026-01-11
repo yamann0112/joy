@@ -68,16 +68,7 @@ export function HamburgerMenu() {
   const { hasAnnouncement } = useAnnouncement();
 
   useEffect(() => {
-    const baseOffset = hasAnnouncement ? 44 : 16;
-    
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setTopOffset(baseOffset + scrollY);
-    };
-    
-    handleScroll();
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    setTopOffset(hasAnnouncement ? 44 : 16);
   }, [hasAnnouncement]);
 
   if (!isAuthenticated) {
