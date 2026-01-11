@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Moon, Sun, User, MessageCircle, X, Send, Users, ChevronLeft, Trash2, UserPlus, Lock } from "lucide-react";
+import { Moon, Sun, User, MessageCircle, X, Send, Users, ChevronLeft, Trash2, UserPlus, Lock, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -40,6 +40,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import type { UserRoleType } from "@shared/schema";
 import type { ChatGroup, ChatMessage, User as UserType } from "@shared/schema";
+import { useBackgroundMusic } from "@/components/background-music";
 
 interface MessageWithUser extends ChatMessage {
   user?: UserType;
@@ -57,7 +58,9 @@ export function TopBar() {
   const [selectedGroup, setSelectedGroup] = useState<ChatGroupWithPrivate | null>(null);
   const [message, setMessage] = useState("");
   const [showUserPicker, setShowUserPicker] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
   const { hasAnnouncement } = useAnnouncement();
+  const { youtubeId } = useBackgroundMusic();
   const { user, isAuthenticated, logout } = useAuth();
 
   const isAdminOrMod = user?.role === "ADMIN" || user?.role === "MOD";
@@ -129,6 +132,17 @@ export function TopBar() {
     sendMutation.mutate(message);
   };
 
+  const toggleMute = () => {
+    const iframe = document.getElementById("youtube-music-player") as HTMLIFrameElement;
+    if (iframe) {
+      const message = isMuted 
+        ? '{"event":"command","func":"unMute","args":""}' 
+        : '{"event":"command","func":"mute","args":""}';
+      iframe.contentWindow?.postMessage(message, '*');
+    }
+    setIsMuted(!isMuted);
+  };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem("joy_theme");
     const prefersDark = savedTheme !== "light";
@@ -181,6 +195,22 @@ export function TopBar() {
         className="fixed right-2 sm:right-4 z-[60] flex items-center gap-1 sm:gap-2"
         style={{ top: `${topOffset}px` }}
       >
+        {youtubeId && (
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={toggleMute}
+            className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 w-8 h-8 sm:w-9 sm:h-9"
+            data-testid="button-music-toggle"
+          >
+            {isMuted ? (
+              <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            ) : (
+              <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
+            )}
+          </Button>
+        )}
+
         <Button
           variant="outline"
           size="icon"

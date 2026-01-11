@@ -8,7 +8,7 @@ import { GlobalAnnouncement } from "@/components/global-announcement";
 import { HamburgerMenuProvider, HamburgerMenuSidebar } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
 import { BannerCarousel } from "@/components/banner-carousel";
-import { BackgroundMusic } from "@/components/background-music";
+import { BackgroundMusicPlayer } from "@/components/background-music";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
@@ -63,7 +63,7 @@ function AppContent() {
       <JoyBanner />
       <HamburgerMenuSidebar />
       <TopBar />
-      <BackgroundMusic />
+      <BackgroundMusicPlayer />
       <Toaster />
       <Router />
     </>
