@@ -6,7 +6,7 @@ import { Home, ArrowLeft, Crown } from "lucide-react";
 export default function NotFound() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-background to-background" />
+      <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background to-background" />
       <div className="absolute inset-0 opacity-10">
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/30 rounded-full blur-3xl" />
       </div>

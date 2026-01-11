@@ -40,7 +40,7 @@ export function PremiumMarquee() {
   ];
 
   return (
-    <div className="w-full overflow-hidden bg-gradient-to-r from-black via-card to-black border-y border-primary/30 py-4">
+    <div className="w-full overflow-hidden bg-gradient-to-r from-background via-card to-background border-y border-primary/30 py-4">
       <div className="marquee-container">
         <div className="marquee-content flex items-center">
           {[...items, ...items].map((item, index) => (
