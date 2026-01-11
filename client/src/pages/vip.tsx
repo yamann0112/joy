@@ -110,8 +110,8 @@ export default function VipPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenuTrigger />
-      <main className="max-w-6xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
+      <main className="max-w-6xl mx-auto px-4 py-6 space-y-8">
+        <HamburgerMenuTrigger />
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full gold-gradient flex items-center justify-center">
             <Crown className="w-7 h-7 text-black" />

@@ -112,8 +112,8 @@ export default function Management() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenuTrigger />
-      <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 py-6 space-y-8">
+        <HamburgerMenuTrigger />
         <Tabs defaultValue="tickets">
           <TabsList className="flex-wrap">
             <TabsTrigger value="tickets" data-testid="tab-mgmt-tickets">

@@ -120,8 +120,8 @@ export default function Settings() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenuTrigger />
-      <main className="max-w-3xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
+      <main className="max-w-3xl mx-auto px-4 py-6 space-y-6">
+        <HamburgerMenuTrigger />
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

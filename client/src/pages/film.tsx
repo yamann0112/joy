@@ -38,19 +38,24 @@ export default function FilmPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenuTrigger />
       {settings?.filmUrl ? (
-        <div className="fixed inset-0 bg-black z-[40]" style={{ top: hasAnnouncement ? "40px" : "0" }}>
-          <iframe
-            src={settings.filmUrl}
-            className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
-            allowFullScreen
-            data-testid="film-iframe"
-          />
-        </div>
+        <>
+          <div className="absolute left-4 top-16 z-[50]">
+            <HamburgerMenuTrigger />
+          </div>
+          <div className="fixed inset-0 bg-black z-[40]" style={{ top: hasAnnouncement ? "40px" : "0" }}>
+            <iframe
+              src={settings.filmUrl}
+              className="w-full h-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+              allowFullScreen
+              data-testid="film-iframe"
+            />
+          </div>
+        </>
       ) : (
-        <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4">
+        <main className="max-w-7xl mx-auto px-4 py-6">
+          <HamburgerMenuTrigger />
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gradient-gold flex items-center gap-2">
               <Film className="w-6 h-6" />

@@ -47,8 +47,8 @@ export default function UsersPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenuTrigger />
-      <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <HamburgerMenuTrigger />
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input

@@ -49,8 +49,8 @@ export default function Events() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenuTrigger />
-      <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        <HamburgerMenuTrigger />
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-bold text-gradient-gold">PK / Etkinlikler</h1>
