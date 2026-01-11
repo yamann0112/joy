@@ -8,6 +8,7 @@ import { GlobalAnnouncement } from "@/components/global-announcement";
 import { HamburgerMenuProvider, HamburgerMenuSidebar } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
 import { BannerCarousel } from "@/components/banner-carousel";
+import { useAnnouncement } from "@/hooks/use-announcement";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -42,16 +43,23 @@ function Router() {
   );
 }
 
+function JoyBanner() {
+  const { hasAnnouncement } = useAnnouncement();
+  
+  return (
+    <div className={`joy-banner ${!hasAnnouncement ? 'no-announcement' : ''}`}>
+      <div className="joy-banner-inner">
+        <BannerCarousel />
+      </div>
+    </div>
+  );
+}
+
 function AppContent() {
   return (
     <>
       <GlobalAnnouncement />
-      {/* JOY Banner - positioned after announcement, before header controls */}
-      <div className="joy-banner">
-        <div className="joy-banner-inner">
-          <BannerCarousel />
-        </div>
-      </div>
+      <JoyBanner />
       <HamburgerMenuSidebar />
       <TopBar />
       <Toaster />

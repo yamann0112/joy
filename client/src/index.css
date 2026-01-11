@@ -505,21 +505,27 @@
     border-radius: 3px;
   }
 
-  /* JOY Banner - positioned after announcement, before header */
+  /* JOY Banner - FIXED position directly below announcement */
   .joy-banner {
-    position: relative;
-    z-index: 30;
+    position: fixed;
+    top: 40px; /* Below announcement bar h-10 = 40px */
+    left: 0;
+    right: 0;
+    z-index: 35;
     width: 100%;
     display: flex;
     justify-content: center;
     background: #000;
   }
 
+  .joy-banner.no-announcement {
+    top: 0;
+  }
+
   .joy-banner-inner {
     width: 100%;
     max-width: 740px;
     aspect-ratio: 740 / 106;
-    height: auto;
     position: relative;
     overflow: hidden;
   }
