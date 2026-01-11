@@ -26,10 +26,13 @@ export function TopBar() {
     const savedTheme = localStorage.getItem("joy_theme");
     const prefersDark = savedTheme !== "light";
     setIsDark(prefersDark);
+    
     if (prefersDark) {
       document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     } else {
       document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
     }
   }, []);
 
@@ -38,14 +41,18 @@ export function TopBar() {
   }, [hasAnnouncement]);
 
   const toggleTheme = () => {
-    const newTheme = isDark ? "light" : "dark";
-    setIsDark(!isDark);
-    if (newTheme === "dark") {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    
+    if (newIsDark) {
       document.documentElement.classList.add("dark");
+      document.documentElement.style.colorScheme = "dark";
     } else {
       document.documentElement.classList.remove("dark");
+      document.documentElement.style.colorScheme = "light";
     }
-    localStorage.setItem("joy_theme", newTheme);
+    
+    localStorage.setItem("joy_theme", newIsDark ? "dark" : "light");
   };
 
   if (!isAuthenticated) {
