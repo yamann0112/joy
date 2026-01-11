@@ -104,7 +104,7 @@ export function HamburgerMenu() {
         variant="outline"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className="fixed left-4 z-[100] bg-black border-2 border-primary shadow-xl"
+        className="absolute left-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
         style={{ top: `${topOffset}px` }}
         data-testid="button-hamburger-menu"
       >
