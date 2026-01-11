@@ -7,10 +7,46 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadge } from "@/components/role-badge";
 import { useQuery } from "@tanstack/react-query";
-import type { Event, User, UserRoleType } from "@shared/schema";
+import type { Event, User, UserRoleType, Announcement } from "@shared/schema";
 import { Calendar, MessageSquare, Users, Ticket, Crown, Sparkles } from "lucide-react";
 import { Link, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
+
+function AnnouncementMarquee() {
+  const { data: announcement, isLoading } = useQuery<Announcement | null>({
+    queryKey: ["/api/announcements/active"],
+    queryFn: async () => {
+      const res = await fetch("/api/announcements/active", { credentials: "include" });
+      if (!res.ok) return null;
+      return res.json();
+    },
+  });
+
+  if (isLoading || !announcement) return null;
+
+  return (
+    <div className="bg-primary/10 border-b border-primary/30 py-3 overflow-hidden">
+      <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+        <div className="flex items-center gap-4 text-primary font-medium px-4">
+          <Sparkles className="w-5 h-5 flex-shrink-0" />
+          <span>{announcement.content}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -48,6 +84,8 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-background">
       <HamburgerMenu />
+
+      <AnnouncementMarquee />
 
       <header className="border-b border-border bg-card/50">
         <div className="max-w-7xl mx-auto px-4 py-4 pl-16">
