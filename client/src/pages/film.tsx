@@ -37,30 +37,25 @@ export default function FilmPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gradient-gold flex items-center gap-2">
-            <Film className="w-6 h-6" />
-            Film
-          </h1>
-          <p className="text-sm text-muted-foreground">Guncel film ve videolar</p>
+      {settings?.filmUrl ? (
+        <div className="fixed inset-0 bg-black" style={{ top: hasAnnouncement ? "40px" : "0" }}>
+          <iframe
+            src={settings.filmUrl}
+            className="w-full h-full border-0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+            allowFullScreen
+            data-testid="film-iframe"
+          />
         </div>
-
-        {settings?.filmUrl ? (
-          <Card className="overflow-hidden">
-            <CardContent className="p-0">
-              <div className="relative w-full" style={{ paddingTop: "56.25%" }}>
-                <iframe
-                  src={settings.filmUrl}
-                  className="absolute inset-0 w-full h-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  data-testid="film-iframe"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        ) : (
+      ) : (
+        <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4">
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gradient-gold flex items-center gap-2">
+              <Film className="w-6 h-6" />
+              Film
+            </h1>
+            <p className="text-sm text-muted-foreground">Guncel film ve videolar</p>
+          </div>
           <Card>
             <CardContent className="py-16">
               <div className="text-center text-muted-foreground">
@@ -70,8 +65,8 @@ export default function FilmPage() {
               </div>
             </CardContent>
           </Card>
-        )}
-      </main>
+        </main>
+      )}
     </div>
   );
 }
