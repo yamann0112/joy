@@ -6,6 +6,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth-context";
 import { UserRole, type UserRoleType } from "@shared/schema";
+import { useBranding } from "@/hooks/use-branding";
+
+function TurkishFlag({ className = "w-6 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+      <rect width="30" height="20" fill="#E30A17"/>
+      <circle cx="10.5" cy="10" r="6" fill="white"/>
+      <circle cx="11.5" cy="10" r="4.8" fill="#E30A17"/>
+      <polygon fill="white" points="16,10 12.5,8.5 13,11.5 11,8.8 14,11.2"/>
+    </svg>
+  );
+}
 
 const MenuContext = createContext<{
   isOpen: boolean;
@@ -94,6 +106,7 @@ export function HamburgerMenuSidebar() {
   const { isOpen, setIsOpen } = useContext(MenuContext);
   const [location] = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
+  const { siteName, showFlag } = useBranding();
 
   if (!isAuthenticated) {
     return null;
@@ -139,11 +152,12 @@ export function HamburgerMenuSidebar() {
       >
         <div className="flex flex-col h-full">
           <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
-                <Crown className="w-5 h-5 text-black" />
+            <div className="flex items-center gap-2">
+              {showFlag && <TurkishFlag className="w-6 h-4" />}
+              <div className="w-9 h-9 rounded-full gold-gradient flex items-center justify-center">
+                <Crown className="w-4 h-4 text-black" />
               </div>
-              <span className="text-xl font-bold text-gradient-gold">JOY</span>
+              <span className="text-lg font-bold text-gradient-gold">{siteName}</span>
             </div>
             <Button
               variant="ghost"

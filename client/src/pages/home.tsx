@@ -14,6 +14,18 @@ import { HamburgerMenu } from "@/components/hamburger-menu";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { EventCard } from "@/components/event-card";
 import { useBackgroundMusic } from "@/components/background-music";
+import { useBranding } from "@/hooks/use-branding";
+
+function TurkishFlag({ className = "w-6 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 30 20" xmlns="http://www.w3.org/2000/svg">
+      <rect width="30" height="20" fill="#E30A17"/>
+      <circle cx="10.5" cy="10" r="6" fill="white"/>
+      <circle cx="11.5" cy="10" r="4.8" fill="#E30A17"/>
+      <polygon fill="white" points="16,10 12.5,8.5 13,11.5 11,8.8 14,11.2"/>
+    </svg>
+  );
+}
 
 const features = [
   {
@@ -311,6 +323,7 @@ function useFakeOnlineCount() {
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const { youtubeId } = useBackgroundMusic();
+  const { siteName, showFlag } = useBranding();
   const [isMuted, setIsMuted] = useState(true);
   const onlineCount = useFakeOnlineCount();
 
@@ -334,11 +347,12 @@ export default function Home() {
     <div className="min-h-screen flex flex-col">
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
         <div className="relative max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
-              <Crown className="w-5 h-5 text-black" />
+          <div className="flex items-center gap-2 sm:gap-3">
+            {showFlag && <TurkishFlag className="w-7 h-5" />}
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full gold-gradient flex items-center justify-center">
+              <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-black" />
             </div>
-            <span className="text-xl font-bold text-gradient-gold">JOY</span>
+            <span className="text-lg sm:text-xl font-bold text-gradient-gold">{siteName}</span>
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-1 px-2 py-1 rounded-full bg-background/95 border border-primary/30 text-xs" data-testid="home-online-count">

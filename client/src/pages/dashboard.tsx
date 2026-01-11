@@ -4,12 +4,129 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadge } from "@/components/role-badge";
-import type { UserRoleType, Banner } from "@shared/schema";
-import { Calendar, MessageSquare, Crown, Ticket, Film, Users } from "lucide-react";
+import type { UserRoleType, Banner, User as UserType } from "@shared/schema";
+import { Calendar, MessageSquare, Crown, Ticket, Film, Users, Trophy, Star, TrendingUp, Activity } from "lucide-react";
 import { Link, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { useQuery } from "@tanstack/react-query";
+
+interface FeaturedMembersData {
+  member1: string | null;
+  member2: string | null;
+  member3: string | null;
+}
+
+function FeaturedMembers() {
+  const { data: featuredData } = useQuery<FeaturedMembersData>({
+    queryKey: ["/api/settings/featured-members"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/featured-members");
+      if (!res.ok) return { member1: null, member2: null, member3: null };
+      return res.json();
+    },
+  });
+
+  const { data: allUsers = [] } = useQuery<UserType[]>({
+    queryKey: ["/api/users"],
+  });
+
+  if (!featuredData?.member1 && !featuredData?.member2 && !featuredData?.member3) {
+    return null;
+  }
+
+  const getMember = (id: string | null) => {
+    if (!id) return null;
+    return allUsers.find(u => u.id === id);
+  };
+
+  const member1 = getMember(featuredData?.member1 || null);
+  const member2 = getMember(featuredData?.member2 || null);
+  const member3 = getMember(featuredData?.member3 || null);
+
+  const rankStyles = [
+    { bg: "bg-gradient-to-br from-yellow-400 to-yellow-600", border: "border-yellow-500", text: "text-yellow-500", label: "1." },
+    { bg: "bg-gradient-to-br from-gray-300 to-gray-500", border: "border-gray-400", text: "text-gray-400", label: "2." },
+    { bg: "bg-gradient-to-br from-amber-600 to-amber-800", border: "border-amber-700", text: "text-amber-600", label: "3." },
+  ];
+
+  const members = [member1, member2, member3].filter(Boolean);
+  if (members.length === 0) return null;
+
+  return (
+    <Card>
+      <CardHeader className="pb-2">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Trophy className="w-5 h-5 text-primary" />
+          Ayin Elemanlari
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="flex flex-wrap justify-center gap-4">
+          {[member1, member2, member3].map((member, idx) => {
+            if (!member) return null;
+            const style = rankStyles[idx];
+            return (
+              <div key={member.id} className="flex flex-col items-center gap-2 p-3 rounded-lg bg-card/50 border border-card-border min-w-[100px]" data-testid={`featured-member-${idx + 1}`}>
+                <div className="relative">
+                  <Avatar className={`w-14 h-14 sm:w-16 sm:h-16 border-2 ${style.border}`}>
+                    <AvatarImage src={member.avatar || undefined} />
+                    <AvatarFallback className={`${style.bg} text-white font-bold`}>
+                      {member.displayName?.charAt(0).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className={`absolute -top-1 -right-1 w-6 h-6 rounded-full ${style.bg} flex items-center justify-center text-xs font-bold text-white shadow-lg`}>
+                    {style.label}
+                  </span>
+                </div>
+                <div className="text-center">
+                  <p className={`font-semibold text-sm ${style.text}`}>{member.displayName}</p>
+                  <p className="text-xs text-muted-foreground">@{member.username}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function QuickStats() {
+  const { data: users = [] } = useQuery<UserType[]>({
+    queryKey: ["/api/users"],
+  });
+
+  const totalUsers = users.length;
+  const vipUsers = users.filter(u => u.role === "VIP" || u.role === "MOD" || u.role === "ADMIN").length;
+  const onlineUsers = users.filter(u => u.isOnline).length;
+
+  return (
+    <div className="grid grid-cols-3 gap-2 sm:gap-4">
+      <Card className="text-center p-3">
+        <div className="flex flex-col items-center gap-1">
+          <Users className="w-5 h-5 text-primary" />
+          <span className="text-lg sm:text-2xl font-bold text-primary">{totalUsers}</span>
+          <span className="text-xs text-muted-foreground">Toplam Uye</span>
+        </div>
+      </Card>
+      <Card className="text-center p-3">
+        <div className="flex flex-col items-center gap-1">
+          <Crown className="w-5 h-5 text-yellow-500" />
+          <span className="text-lg sm:text-2xl font-bold text-yellow-500">{vipUsers}</span>
+          <span className="text-xs text-muted-foreground">VIP Uye</span>
+        </div>
+      </Card>
+      <Card className="text-center p-3">
+        <div className="flex flex-col items-center gap-1">
+          <Activity className="w-5 h-5 text-green-500" />
+          <span className="text-lg sm:text-2xl font-bold text-green-500">{onlineUsers}</span>
+          <span className="text-xs text-muted-foreground">Online</span>
+        </div>
+      </Card>
+    </div>
+  );
+}
 
 function AdBannerSmall() {
   const { data: banners } = useQuery<Banner[]>({
@@ -88,8 +205,10 @@ export default function Dashboard() {
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-16" : "pt-12"}`}>
       <div className="pt-4">
-      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-8">
+      <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6">
         <AdBannerSmall />
+        <FeaturedMembers />
+        <QuickStats />
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-2">
