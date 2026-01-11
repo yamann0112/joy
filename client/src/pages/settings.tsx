@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { RoleBadge } from "@/components/role-badge";
 import type { UserRoleType } from "@shared/schema";
-import { User, Camera, Shield, Bell, Lock, Palette, Film, Save, Loader2 } from "lucide-react";
+import { User, Camera, Shield, Bell, Lock, Palette, Film, Music, Save, Loader2 } from "lucide-react";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { useQuery, useMutation } from "@tanstack/react-query";
@@ -21,6 +21,7 @@ export default function Settings() {
   const { hasAnnouncement } = useAnnouncement();
   const { toast } = useToast();
   const [filmUrl, setFilmUrl] = useState("");
+  const [musicUrl, setMusicUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -86,12 +87,28 @@ export default function Settings() {
     },
     enabled: isAuthenticated && isAdmin,
   });
+
+  const { data: musicSettings } = useQuery({
+    queryKey: ["/api/settings/music"],
+    queryFn: async () => {
+      const res = await fetch("/api/settings/music", { credentials: "include" });
+      if (!res.ok) return { musicUrl: "" };
+      return res.json();
+    },
+    enabled: isAuthenticated && isAdmin,
+  });
   
   useEffect(() => {
     if (filmSettings?.filmUrl) {
       setFilmUrl(filmSettings.filmUrl);
     }
   }, [filmSettings]);
+
+  useEffect(() => {
+    if (musicSettings?.musicUrl) {
+      setMusicUrl(musicSettings.musicUrl);
+    }
+  }, [musicSettings]);
   
   const saveFilmMutation = useMutation({
     mutationFn: async (url: string) => {
@@ -100,6 +117,19 @@ export default function Settings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/settings/film"] });
       toast({ title: "Basarili", description: "Film URL kaydedildi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+
+  const saveMusicMutation = useMutation({
+    mutationFn: async (url: string) => {
+      return apiRequest("POST", "/api/settings/music", { musicUrl: url });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings/music"] });
+      toast({ title: "Basarili", description: "Muzik URL kaydedildi" });
     },
     onError: (error: any) => {
       toast({ title: "Hata", description: error.message, variant: "destructive" });
@@ -326,47 +356,91 @@ export default function Settings() {
         </Card>
 
         {isAdmin && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Film className="w-5 h-5 text-primary" />
-                Film Ayarları
-              </CardTitle>
-              <CardDescription>Film sayfasında gösterilecek video URL'si (Admin)</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="filmUrl">Video URL (Embed)</Label>
-                <Input
-                  id="filmUrl"
-                  placeholder="https://www.youtube.com/embed/..."
-                  value={filmUrl}
-                  onChange={(e) => setFilmUrl(e.target.value)}
-                  data-testid="input-film-url"
-                />
-                <p className="text-xs text-muted-foreground">
-                  YouTube, Vimeo veya baska bir embed URL girebilirsiniz
-                </p>
-              </div>
-              <Button
-                onClick={() => saveFilmMutation.mutate(filmUrl)}
-                disabled={saveFilmMutation.isPending}
-                data-testid="button-save-film-url"
-              >
-                {saveFilmMutation.isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Kaydediliyor...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4 mr-2" />
-                    Kaydet
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Film className="w-5 h-5 text-primary" />
+                  Film Ayarları
+                </CardTitle>
+                <CardDescription>Film sayfasında gösterilecek video URL'si (Admin)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="filmUrl">Video URL (Embed)</Label>
+                  <Input
+                    id="filmUrl"
+                    placeholder="https://www.youtube.com/embed/..."
+                    value={filmUrl}
+                    onChange={(e) => setFilmUrl(e.target.value)}
+                    data-testid="input-film-url"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    YouTube, Vimeo veya baska bir embed URL girebilirsiniz
+                  </p>
+                </div>
+                <Button
+                  onClick={() => saveFilmMutation.mutate(filmUrl)}
+                  disabled={saveFilmMutation.isPending}
+                  data-testid="button-save-film-url"
+                >
+                  {saveFilmMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Kaydet
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Music className="w-5 h-5 text-primary" />
+                  Arka Plan Muzigi
+                </CardTitle>
+                <CardDescription>Site acildiginda calacak muzik (YouTube linki)</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="musicUrl">YouTube URL</Label>
+                  <Input
+                    id="musicUrl"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={musicUrl}
+                    onChange={(e) => setMusicUrl(e.target.value)}
+                    data-testid="input-music-url"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    YouTube video linki girin. Site acildiginda otomatik calmaya baslayacak.
+                  </p>
+                </div>
+                <Button
+                  onClick={() => saveMusicMutation.mutate(musicUrl)}
+                  disabled={saveMusicMutation.isPending}
+                  data-testid="button-save-music-url"
+                >
+                  {saveMusicMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Kaydediliyor...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Kaydet
+                    </>
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          </>
         )}
       </main>
     </div>

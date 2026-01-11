@@ -523,6 +523,23 @@ export async function registerRoutes(
     res.json({ filmUrl: filmUrl || "" });
   });
 
+  // Background music settings - public GET for all users
+  app.get("/api/settings/music", async (req, res) => {
+    const musicUrl = await storage.getSetting("musicUrl");
+    res.json({ musicUrl: musicUrl || "" });
+  });
+
+  app.post("/api/settings/music", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN") {
+      return res.status(403).json({ message: "Yetkisiz erişim" });
+    }
+
+    const { musicUrl } = req.body;
+    await storage.setSetting("musicUrl", musicUrl || "");
+    res.json({ musicUrl: musicUrl || "" });
+  });
+
   app.get("/api/vip/apps", requireAuth, async (req, res) => {
     const currentUser = await storage.getUser(req.session.userId!);
     if (!currentUser || !["VIP", "MOD", "ADMIN"].includes(currentUser.role)) {
