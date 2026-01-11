@@ -41,7 +41,7 @@ export function BannerCarousel() {
   if (isLoading) {
     return (
       <div className="w-full max-w-[740px] mx-auto">
-        <div className="w-full h-[212px] rounded-2xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
+        <div className="w-full h-[106px] rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
       </div>
     );
   }
@@ -54,7 +54,7 @@ export function BannerCarousel() {
     <div className="w-full max-w-[740px] mx-auto" data-testid="banner-carousel">
       <div 
         ref={containerRef}
-        className="relative w-full h-[212px] rounded-2xl overflow-hidden shadow-2xl shadow-primary/20"
+        className="relative w-full h-[106px] rounded-xl overflow-hidden shadow-xl shadow-primary/20"
       >
         <div 
           className="flex h-full transition-transform duration-600 ease-out"
@@ -85,26 +85,26 @@ export function BannerCarousel() {
                 </div>
               )}
               
-              <div className="relative h-full flex flex-col p-6">
-                <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 drop-shadow-lg">
-                  {banner.title}
-                </h2>
-                {banner.description && (
-                  <p className="text-white/80 text-sm md:text-base mb-auto max-w-lg leading-relaxed">
-                    {banner.description}
-                  </p>
-                )}
+              <div className="relative h-full flex items-center gap-4 px-4 py-2">
+                <div className="flex-1 min-w-0">
+                  <h2 className="text-lg md:text-xl font-bold text-white drop-shadow-lg truncate">
+                    {banner.title}
+                  </h2>
+                  {banner.description && (
+                    <p className="text-white/80 text-xs md:text-sm max-w-md truncate">
+                      {banner.description}
+                    </p>
+                  )}
+                </div>
                 {banner.ctaLabel && banner.ctaUrl && (
-                  <div className="mt-auto">
-                    <Button
-                      size="sm"
-                      className="gold-gradient text-black font-semibold hover:opacity-90 shadow-lg"
-                      onClick={() => window.open(banner.ctaUrl!, "_blank")}
-                      data-testid="banner-cta-button"
-                    >
-                      {banner.ctaLabel}
-                    </Button>
-                  </div>
+                  <Button
+                    size="sm"
+                    className="gold-gradient text-black font-semibold hover:opacity-90 shadow-lg flex-shrink-0"
+                    onClick={() => window.open(banner.ctaUrl!, "_blank")}
+                    data-testid="banner-cta-button"
+                  >
+                    {banner.ctaLabel}
+                  </Button>
                 )}
               </div>
             </div>
@@ -116,23 +116,23 @@ export function BannerCarousel() {
             <Button
               variant="ghost"
               size="icon"
-              className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 rounded-full w-8 h-8 border border-white/10"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 rounded-full w-6 h-6 border border-white/10"
               onClick={goToPrev}
               data-testid="banner-prev"
             >
-              <ChevronLeft className="w-5 h-5" />
+              <ChevronLeft className="w-4 h-4" />
             </Button>
             <Button
               variant="ghost"
               size="icon"
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 rounded-full w-8 h-8 border border-white/10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 backdrop-blur-sm text-white hover:bg-black/60 rounded-full w-6 h-6 border border-white/10"
               onClick={goToNext}
               data-testid="banner-next"
             >
-              <ChevronRight className="w-5 h-5" />
+              <ChevronRight className="w-4 h-4" />
             </Button>
 
-            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
               {banners.map((_, index) => (
                 <button
                   key={index}
@@ -140,24 +140,14 @@ export function BannerCarousel() {
                     setIsTransitioning(true);
                     setCurrentIndex(index);
                   }}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                  className={`h-1 rounded-full transition-all duration-300 ${
                     index === currentIndex
-                      ? "bg-primary w-6"
-                      : "bg-white/40 w-1.5 hover:bg-white/60"
+                      ? "bg-primary w-4"
+                      : "bg-white/40 w-1 hover:bg-white/60"
                   }`}
                   data-testid={`banner-dot-${index}`}
                 />
               ))}
-            </div>
-
-            <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
-              <div 
-                className="h-full bg-primary/60 transition-all"
-                style={{ 
-                  width: `${((currentIndex + 1) / banners.length) * 100}%`,
-                  transition: 'width 600ms ease-out'
-                }}
-              />
             </div>
           </>
         )}
