@@ -5,7 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
 import { GlobalAnnouncement } from "@/components/global-announcement";
-import { HamburgerMenu } from "@/components/hamburger-menu";
+import { HamburgerMenuProvider, HamburgerMenuSidebar } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
@@ -46,11 +46,13 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <GlobalAnnouncement />
-          <HamburgerMenu />
-          <TopBar />
-          <Toaster />
-          <Router />
+          <HamburgerMenuProvider>
+            <GlobalAnnouncement />
+            <HamburgerMenuSidebar />
+            <TopBar />
+            <Toaster />
+            <Router />
+          </HamburgerMenuProvider>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

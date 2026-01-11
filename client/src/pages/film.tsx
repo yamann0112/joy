@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Film, Play } from "lucide-react";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 interface FilmSettings {
   filmUrl: string;
@@ -37,6 +38,7 @@ export default function FilmPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       {settings?.filmUrl ? (
         <div className="fixed inset-0 bg-black z-[40]" style={{ top: hasAnnouncement ? "40px" : "0" }}>
           <iframe

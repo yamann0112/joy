@@ -18,6 +18,7 @@ import { Redirect } from "wouter";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 const getStatusBadge = (status: string) => {
   switch (status) {
@@ -108,6 +109,7 @@ export default function Tickets() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <div className="flex items-center justify-between mb-4">
           <div>

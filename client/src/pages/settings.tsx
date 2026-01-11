@@ -14,6 +14,7 @@ import { useAnnouncement } from "@/hooks/use-announcement";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 export default function Settings() {
   const { isAuthenticated, isLoading: authLoading, user, refetchUser } = useAuth();
@@ -119,6 +120,7 @@ export default function Settings() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       <main className="max-w-3xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <Card>
           <CardHeader>

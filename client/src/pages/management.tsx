@@ -20,6 +20,7 @@ import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { format } from "date-fns";
 import { tr } from "date-fns/locale";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 export default function Management() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -111,6 +112,7 @@ export default function Management() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
         <Tabs defaultValue="tickets">
           <TabsList className="flex-wrap">

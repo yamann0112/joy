@@ -11,6 +11,7 @@ import type { User, UserRoleType } from "@shared/schema";
 import { Users, Search, UserPlus } from "lucide-react";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 export default function UsersPage() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -46,6 +47,7 @@ export default function UsersPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

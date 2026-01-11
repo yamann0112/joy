@@ -10,6 +10,7 @@ import type { Event } from "@shared/schema";
 import { Calendar, Search, Plus, Filter } from "lucide-react";
 import { Redirect } from "wouter";
 import { useAnnouncement } from "@/hooks/use-announcement";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 export default function Events() {
   const { isAuthenticated, isLoading: authLoading, user } = useAuth();
@@ -48,6 +49,7 @@ export default function Events() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <div className="flex items-center justify-between mb-4">
           <div>

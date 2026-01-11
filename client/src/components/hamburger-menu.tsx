@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, createContext, useContext } from "react";
 import { Link, useLocation } from "wouter";
 import { Menu, X, Home, Calendar, MessageSquare, Users, Shield, Settings, LogOut, Ticket, Crown, Star, Film } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/lib/auth-context";
 import { UserRole, type UserRoleType } from "@shared/schema";
-import { useAnnouncement } from "@/hooks/use-announcement";
+
+const MenuContext = createContext<{
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}>({ isOpen: false, setIsOpen: () => {} });
 
 const getRoleBadgeStyle = (role: UserRoleType) => {
   switch (role) {
@@ -60,16 +64,36 @@ function MenuItem({ href, icon, label, isActive, onClick }: MenuItemProps) {
   );
 }
 
-export function HamburgerMenu() {
+export function HamburgerMenuTrigger() {
+  const { setIsOpen } = useContext(MenuContext);
+  
+  return (
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={() => setIsOpen(true)}
+      className="ml-4 mt-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
+      data-testid="button-hamburger-menu"
+    >
+      <Menu className="w-6 h-6 text-primary" strokeWidth={3} />
+    </Button>
+  );
+}
+
+export function HamburgerMenuProvider({ children }: { children: React.ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [topOffset, setTopOffset] = useState(16);
+  
+  return (
+    <MenuContext.Provider value={{ isOpen, setIsOpen }}>
+      {children}
+    </MenuContext.Provider>
+  );
+}
+
+export function HamburgerMenuSidebar() {
+  const { isOpen, setIsOpen } = useContext(MenuContext);
   const [location] = useLocation();
   const { user, logout, isAuthenticated } = useAuth();
-  const { hasAnnouncement } = useAnnouncement();
-
-  useEffect(() => {
-    setTopOffset(hasAnnouncement ? 44 : 16);
-  }, [hasAnnouncement]);
 
   if (!isAuthenticated) {
     return null;
@@ -78,7 +102,6 @@ export function HamburgerMenu() {
   const userRole = (user?.role as UserRoleType) || UserRole.USER;
   const canAccessAdmin = userRole === UserRole.ADMIN;
   const canAccessMod = userRole === UserRole.ADMIN || userRole === UserRole.MOD;
-
   const canAccessVip = userRole === UserRole.VIP || userRole === UserRole.MOD || userRole === UserRole.ADMIN;
   
   const menuItems = [
@@ -100,27 +123,16 @@ export function HamburgerMenu() {
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={() => setIsOpen(true)}
-        className="absolute left-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
-        style={{ top: `${topOffset}px` }}
-        data-testid="button-hamburger-menu"
-      >
-        <Menu className="w-6 h-6 text-primary" strokeWidth={3} />
-      </Button>
-
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 fade-in"
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[80] fade-in"
           onClick={() => setIsOpen(false)}
           data-testid="menu-overlay"
         />
       )}
 
       <aside
-        className={`fixed top-0 left-0 h-full w-72 bg-sidebar border-r border-sidebar-border z-50 transform transition-transform duration-300 ease-in-out ${
+        className={`fixed top-0 left-0 h-full w-72 bg-sidebar border-r border-sidebar-border z-[90] transform transition-transform duration-300 ease-in-out ${
           isOpen ? "translate-x-0 slide-in-left" : "-translate-x-full"
         }`}
         data-testid="sidebar-menu"
@@ -147,34 +159,24 @@ export function HamburgerMenu() {
             <div className="flex items-center gap-3">
               <Avatar className="w-12 h-12 border-2 border-primary">
                 <AvatarImage src={user?.avatar || undefined} />
-                <AvatarFallback className="bg-primary/20 text-primary font-semibold">
-                  {user?.displayName?.charAt(0).toUpperCase() || "U"}
+                <AvatarFallback className="bg-primary/20 text-primary">
+                  {user?.displayName?.[0]?.toUpperCase() || user?.username?.[0]?.toUpperCase() || "?"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold truncate" data-testid="text-username">
-                  {user?.displayName}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge
-                    variant="outline"
-                    className={`text-xs ${getRoleBadgeStyle(userRole)}`}
-                    data-testid="badge-user-role"
-                  >
-                    <span className="flex items-center gap-1">
-                      {getRoleIcon(userRole)}
-                      {userRole}
-                    </span>
-                  </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    Lvl {user?.level || 1}
-                  </span>
-                </div>
+                <p className="font-semibold truncate">{user?.displayName || user?.username}</p>
+                <Badge
+                  variant="outline"
+                  className={`text-xs ${getRoleBadgeStyle(userRole)}`}
+                >
+                  {getRoleIcon(userRole)}
+                  <span className="ml-1">{userRole}</span>
+                </Badge>
               </div>
             </div>
           </div>
 
-          <nav className="flex-1 overflow-y-auto p-3 space-y-1">
+          <nav className="flex-1 overflow-y-auto p-4 space-y-1">
             {menuItems
               .filter((item) => item.show)
               .map((item) => (
@@ -197,11 +199,15 @@ export function HamburgerMenu() {
               data-testid="button-logout"
             >
               <LogOut className="w-5 h-5" />
-              <span>Çıkış Yap</span>
+              Çıkış Yap
             </Button>
           </div>
         </div>
       </aside>
     </>
   );
+}
+
+export function HamburgerMenu() {
+  return null;
 }

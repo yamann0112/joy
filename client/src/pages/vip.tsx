@@ -13,6 +13,7 @@ import { useAnnouncement } from "@/hooks/use-announcement";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { HamburgerMenuTrigger } from "@/components/hamburger-menu";
 
 interface VipApp {
   id: string;
@@ -109,6 +110,7 @@ export default function VipPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
+      <HamburgerMenuTrigger />
       <main className="max-w-6xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full gold-gradient flex items-center justify-center">
