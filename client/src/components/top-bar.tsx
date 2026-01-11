@@ -441,8 +441,16 @@ export function TopBar() {
                           </AvatarFallback>
                         </Avatar>
                         <div className={`max-w-[85%] ${msg.userId === user?.id ? "text-right" : ""}`}>
-                          <p className={`text-[10px] font-bold mb-0.5 ${msg.userId === user?.id ? "mr-1 text-primary" : "ml-1 text-primary"}`}>
-                            {msg.user?.displayName || "Kullanici"}
+                          <p className={`text-[10px] mb-0.5 ${msg.userId === user?.id ? "mr-1" : "ml-1"}`}>
+                            <span className={
+                              msg.user?.role === "ADMIN" ? "chat-name-admin" :
+                              msg.user?.role === "MOD" ? "chat-name-mod" :
+                              msg.user?.role === "VIP" ? "chat-name-vip" :
+                              "chat-name-user"
+                            }>
+                              {msg.user?.displayName || "Kullanici"}
+                            </span>
+                            {msg.user?.role === "VIP" && <span className="vip-badge">VIP</span>}
                           </p>
                           <div
                             className={`p-2 rounded-2xl text-sm shadow-sm relative ${

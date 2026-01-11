@@ -354,4 +354,68 @@
       transform: translateX(-33.33%);
     }
   }
+
+  /* Role-based chat name styling */
+  @keyframes name-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .chat-name-admin {
+    font-weight: 700;
+    background: linear-gradient(90deg, #ff0000, #ff4444, #ff0000, #cc0000, #ff0000);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: name-flow 3s ease infinite;
+    will-change: background-position;
+  }
+
+  .chat-name-mod {
+    font-weight: 600;
+    background: linear-gradient(90deg, #0066ff, #00aaff, #0066ff, #0044cc, #0066ff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: name-flow 3s ease infinite;
+    will-change: background-position;
+  }
+
+  .chat-name-vip {
+    font-weight: 600;
+    color: hsl(45 80% 35%);
+  }
+
+  .dark .chat-name-vip {
+    color: hsl(45 90% 55%);
+  }
+
+  .chat-name-user {
+    font-weight: 500;
+    color: hsl(0 0% 20%);
+  }
+
+  .dark .chat-name-user {
+    color: hsl(0 0% 70%);
+  }
+
+  .vip-badge {
+    display: inline-block;
+    margin-left: 4px;
+    padding: 1px 4px;
+    font-size: 9px;
+    font-weight: 700;
+    background: hsl(45 80% 45%);
+    color: hsl(0 0% 10%);
+    border-radius: 3px;
+  }
 }
