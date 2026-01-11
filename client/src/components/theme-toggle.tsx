@@ -34,7 +34,7 @@ export function ThemeToggle() {
       variant="outline"
       size="icon"
       onClick={toggleTheme}
-      className={`fixed right-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 ${hasAnnouncement ? "top-12" : "top-4"}`}
+      className={`fixed right-4 z-[60] bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20 ${hasAnnouncement ? "top-[44px]" : "top-4"}`}
       data-testid="button-theme-toggle"
     >
       {isDark ? (
