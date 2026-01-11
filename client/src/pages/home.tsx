@@ -313,7 +313,6 @@ export default function Home() {
 
       <main className="flex-1 pt-16">
         <AnnouncementMarquee />
-        <AdBannerSection />
 
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background to-background" />

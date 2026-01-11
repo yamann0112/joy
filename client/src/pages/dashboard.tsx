@@ -1,13 +1,75 @@
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { RoleBadge } from "@/components/role-badge";
-import type { UserRoleType } from "@shared/schema";
+import type { UserRoleType, Banner } from "@shared/schema";
 import { Calendar, MessageSquare, Crown, Ticket, Film, Users } from "lucide-react";
 import { Link, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAnnouncement } from "@/hooks/use-announcement";
+import { useQuery } from "@tanstack/react-query";
+
+function AdBannerSmall() {
+  const { data: banners } = useQuery<Banner[]>({
+    queryKey: ["/api/banners"],
+  });
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!banners || banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners]);
+
+  if (!banners || banners.length === 0) return null;
+
+  return (
+    <div className="relative overflow-hidden rounded-lg border border-primary/30 max-w-md mx-auto">
+      <div 
+        className="flex transition-transform duration-500 ease-out"
+        style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+      >
+        {banners.map((banner) => (
+          <div key={banner.id} className="flex-shrink-0 w-full">
+            {banner.imageUrl ? (
+              <a 
+                href={banner.ctaUrl || "#"} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <img 
+                  src={banner.imageUrl} 
+                  alt={banner.title || "Reklam"} 
+                  className="w-full h-auto max-h-24 object-cover"
+                  data-testid={`ad-banner-${banner.id}`}
+                />
+              </a>
+            ) : null}
+          </div>
+        ))}
+      </div>
+      {banners.length > 1 && (
+        <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
+          {banners.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => setCurrentIndex(index)}
+              className={`w-1.5 h-1.5 rounded-full transition-all ${
+                index === currentIndex ? "bg-primary w-3" : "bg-white/50"
+              }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -29,10 +91,10 @@ export default function Dashboard() {
   const canAccessVip = userRole === "VIP" || userRole === "MOD" || userRole === "ADMIN";
 
   return (
-    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-[calc(92px+min(100vw*106/740,106px))]" : "pt-[calc(52px+min(100vw*106/740,106px))]"}`}>
-      {/* Main content - banner is now in App.tsx */}
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-16" : "pt-12"}`}>
       <div className="pt-4">
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-8">
+        <AdBannerSmall />
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between gap-4 space-y-0 pb-2">
