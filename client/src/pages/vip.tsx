@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { HamburgerMenu } from "@/components/hamburger-menu";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -93,7 +92,6 @@ export default function VipPage() {
   if (!isVipOrHigher) {
     return (
       <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-        <HamburgerMenu />
         <main className="max-w-4xl mx-auto px-4 py-12 pl-16 sm:pl-4">
           <Card className="text-center py-12">
             <CardContent>
@@ -111,8 +109,6 @@ export default function VipPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenu />
-
       <main className="max-w-6xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
         <div className="flex items-center gap-4">
           <div className="w-14 h-14 rounded-full gold-gradient flex items-center justify-center">

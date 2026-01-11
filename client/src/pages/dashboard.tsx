@@ -1,5 +1,4 @@
 import { useAuth } from "@/lib/auth-context";
-import { HamburgerMenu } from "@/components/hamburger-menu";
 import { StatCard, StatCardSkeleton } from "@/components/stat-card";
 import { EventCard, EventCardSkeleton } from "@/components/event-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -49,8 +48,6 @@ export default function Dashboard() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenu />
-
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-8">
         <section>
           <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">

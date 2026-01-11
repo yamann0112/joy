@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { HamburgerMenu } from "@/components/hamburger-menu";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,8 +66,6 @@ export default function Settings() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenu />
-
       <main className="max-w-3xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <Card>
           <CardHeader>

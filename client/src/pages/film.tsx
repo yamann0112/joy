@@ -1,5 +1,4 @@
 import { useAuth } from "@/lib/auth-context";
-import { HamburgerMenu } from "@/components/hamburger-menu";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { Film, Play } from "lucide-react";
@@ -38,8 +37,6 @@ export default function FilmPage() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenu />
-
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gradient-gold flex items-center gap-2">

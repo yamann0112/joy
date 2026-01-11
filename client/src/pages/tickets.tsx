@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { HamburgerMenu } from "@/components/hamburger-menu";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -109,8 +108,6 @@ export default function Tickets() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenu />
-
       <main className="max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 space-y-6">
         <div className="flex items-center justify-between mb-4">
           <div>

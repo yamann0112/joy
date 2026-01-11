@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
-import { HamburgerMenu } from "@/components/hamburger-menu";
 import { ChatMessage, ChatMessageSkeleton } from "@/components/chat-message";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -107,8 +106,6 @@ export default function Chat() {
 
   return (
     <div className={`min-h-screen bg-background flex flex-col ${hasAnnouncement ? "pt-10" : ""}`}>
-      <HamburgerMenu />
-
       <main className="flex-1 max-w-7xl mx-auto px-4 py-6 pl-16 sm:pl-4 w-full">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-180px)]">
           <Card className="lg:col-span-1 flex flex-col overflow-hidden">
