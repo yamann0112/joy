@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import type { Announcement, Event } from "@shared/schema";
+import type { Announcement, Event, Banner } from "@shared/schema";
 import { Crown, Shield, Users, MessageSquare, Calendar, Sparkles, Star, Zap, LogIn, Megaphone, Play } from "lucide-react";
 import { HamburgerMenu } from "@/components/hamburger-menu";
 import { useAnnouncement } from "@/hooks/use-announcement";
@@ -36,6 +36,75 @@ const features = [
     description: "Moderator destekli guvenli ortam",
   },
 ];
+
+function AdBannerSection() {
+  const { data: banners, isLoading } = useQuery<Banner[]>({
+    queryKey: ["/api/banners"],
+  });
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!banners || banners.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % banners.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [banners]);
+
+  if (isLoading || !banners || banners.length === 0) return null;
+
+  return (
+    <section className="py-8 px-4">
+      <div className="max-w-4xl mx-auto">
+        <div className="relative overflow-hidden rounded-xl border border-primary/30 shadow-lg">
+          <div 
+            className="flex transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${currentIndex * 100}%)` }}
+          >
+            {banners.map((banner) => (
+              <div key={banner.id} className="flex-shrink-0 w-full">
+                {banner.imageUrl ? (
+                  <a 
+                    href={banner.ctaUrl || "#"} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    <img 
+                      src={banner.imageUrl} 
+                      alt={banner.title || "Reklam"} 
+                      className="w-full h-auto object-cover"
+                      data-testid={`ad-banner-${banner.id}`}
+                    />
+                  </a>
+                ) : (
+                  <div className="w-full h-32 bg-gradient-to-r from-primary/20 to-primary/10 flex items-center justify-center">
+                    <span className="text-primary font-semibold">{banner.title || "Reklam"}</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          {banners.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+              {banners.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentIndex(index)}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === currentIndex ? "bg-primary w-4" : "bg-white/50"
+                  }`}
+                  data-testid={`ad-dot-${index}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
 
 function AnnouncementMarquee() {
   const { data: announcement, isLoading } = useQuery<Announcement | null>({
@@ -244,6 +313,7 @@ export default function Home() {
 
       <main className="flex-1 pt-16">
         <AnnouncementMarquee />
+        <AdBannerSection />
 
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background to-background" />
