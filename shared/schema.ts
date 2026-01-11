@@ -74,6 +74,9 @@ export const chatGroups = pgTable("chat_groups", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
   description: text("description"),
+  requiredRole: text("required_role").notNull().default("USER"),
+  isPrivate: boolean("is_private").notNull().default(false),
+  participants: text("participants").array(),
   createdBy: varchar("created_by").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });

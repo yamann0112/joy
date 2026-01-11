@@ -33,7 +33,7 @@ export interface IStorage {
 
   getChatGroups(): Promise<ChatGroup[]>;
   getChatGroup(id: string): Promise<ChatGroup | undefined>;
-  createChatGroup(group: InsertChatGroup & { createdBy: string }): Promise<ChatGroup>;
+  createChatGroup(group: InsertChatGroup & { createdBy: string; isPrivate?: boolean; participants?: string[] }): Promise<ChatGroup>;
 
   getChatMessages(groupId: string): Promise<ChatMessage[]>;
   createChatMessage(message: InsertChatMessage & { userId: string }): Promise<ChatMessage>;
@@ -140,7 +140,10 @@ export class MemStorage implements IStorage {
     this.chatGroups.set(group1Id, {
       id: group1Id,
       name: "Genel Sohbet",
-      description: "Herkese açık genel sohbet grubu",
+      description: "Herkese acik genel sohbet grubu",
+      requiredRole: "USER",
+      isPrivate: false,
+      participants: null,
       createdBy: adminId,
       createdAt: new Date(),
     });
@@ -149,7 +152,10 @@ export class MemStorage implements IStorage {
     this.chatGroups.set(group2Id, {
       id: group2Id,
       name: "VIP Lounge",
-      description: "VIP üyelere özel sohbet alanı",
+      description: "VIP uyelere ozel sohbet alani",
+      requiredRole: "VIP",
+      isPrivate: false,
+      participants: null,
       createdBy: adminId,
       createdAt: new Date(),
     });
@@ -157,9 +163,12 @@ export class MemStorage implements IStorage {
     const group3Id = randomUUID();
     this.chatGroups.set(group3Id, {
       id: group3Id,
-      name: "Etkinlik Duyuruları",
-      description: "Etkinlik ve PK duyuruları",
-      createdBy: modId,
+      name: "Yonetim Sohbeti",
+      description: "Admin ve moderator ozel sohbet alani",
+      requiredRole: "MOD",
+      isPrivate: false,
+      participants: null,
+      createdBy: adminId,
       createdAt: new Date(),
     });
 
@@ -326,12 +335,15 @@ export class MemStorage implements IStorage {
     return this.chatGroups.get(id);
   }
 
-  async createChatGroup(group: InsertChatGroup & { createdBy: string }): Promise<ChatGroup> {
+  async createChatGroup(group: InsertChatGroup & { createdBy: string; isPrivate?: boolean; participants?: string[] }): Promise<ChatGroup> {
     const id = randomUUID();
     const newGroup: ChatGroup = {
       id,
       name: group.name,
       description: group.description ?? null,
+      requiredRole: "USER",
+      isPrivate: group.isPrivate ?? false,
+      participants: group.participants ?? null,
       createdBy: group.createdBy,
       createdAt: new Date(),
     };

@@ -126,8 +126,68 @@ export async function registerRoutes(
   });
 
   app.get("/api/chat/groups", requireAuth, async (req, res) => {
-    const groups = await storage.getChatGroups();
-    res.json(groups);
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (!currentUser) {
+      return res.status(401).json({ message: "Kullanici bulunamadi" });
+    }
+
+    const allGroups = await storage.getChatGroups();
+    const roleHierarchy: Record<string, number> = {
+      USER: 1,
+      VIP: 2,
+      MOD: 3,
+      ADMIN: 4,
+    };
+    const userLevel = roleHierarchy[currentUser.role] || 1;
+
+    const filteredGroups = allGroups.filter((group) => {
+      if (group.isPrivate) {
+        return group.participants?.includes(currentUser.id);
+      }
+      const requiredLevel = roleHierarchy[group.requiredRole || "USER"] || 1;
+      return userLevel >= requiredLevel;
+    });
+
+    res.json(filteredGroups);
+  });
+
+  app.post("/api/chat/private", requireAuth, async (req, res) => {
+    const currentUser = await storage.getUser(req.session.userId!);
+    if (currentUser?.role !== "ADMIN" && currentUser?.role !== "MOD") {
+      return res.status(403).json({ message: "Yetkisiz erisim" });
+    }
+
+    const { targetUserId } = req.body;
+    if (!targetUserId) {
+      return res.status(400).json({ message: "Hedef kullanici gerekli" });
+    }
+
+    const targetUser = await storage.getUser(targetUserId);
+    if (!targetUser) {
+      return res.status(404).json({ message: "Kullanici bulunamadi" });
+    }
+
+    const allGroups = await storage.getChatGroups();
+    const existingChat = allGroups.find(
+      (g) =>
+        g.isPrivate &&
+        g.participants?.includes(currentUser.id) &&
+        g.participants?.includes(targetUserId)
+    );
+
+    if (existingChat) {
+      return res.json(existingChat);
+    }
+
+    const group = await storage.createChatGroup({
+      name: `${currentUser.displayName} - ${targetUser.displayName}`,
+      description: "Ozel sohbet",
+      createdBy: currentUser.id,
+      isPrivate: true,
+      participants: [currentUser.id, targetUserId],
+    });
+
+    res.status(201).json(group);
   });
 
   app.get("/api/chat/messages", requireAuth, async (req, res) => {

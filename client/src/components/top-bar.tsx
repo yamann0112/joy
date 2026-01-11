@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Moon, Sun, User, MessageCircle, X, Send, Users, ChevronLeft } from "lucide-react";
+import { Moon, Sun, User, MessageCircle, X, Send, Users, ChevronLeft, Trash2, UserPlus, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +13,24 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/lib/auth-context";
 import { useAnnouncement } from "@/hooks/use-announcement";
 import { RoleBadge } from "@/components/role-badge";
@@ -26,19 +44,32 @@ interface MessageWithUser extends ChatMessage {
   user?: UserType;
 }
 
+interface ChatGroupWithPrivate extends ChatGroup {
+  isPrivate?: boolean;
+  participants?: string[] | null;
+}
+
 export function TopBar() {
   const [isDark, setIsDark] = useState(true);
   const [topOffset, setTopOffset] = useState(16);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [selectedGroup, setSelectedGroup] = useState<ChatGroup | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<ChatGroupWithPrivate | null>(null);
   const [message, setMessage] = useState("");
+  const [showUserPicker, setShowUserPicker] = useState(false);
   const { hasAnnouncement } = useAnnouncement();
   const { user, isAuthenticated, logout } = useAuth();
 
-  const { data: groups = [] } = useQuery<ChatGroup[]>({
+  const isAdminOrMod = user?.role === "ADMIN" || user?.role === "MOD";
+
+  const { data: groups = [] } = useQuery<ChatGroupWithPrivate[]>({
     queryKey: ["/api/chat/groups"],
     enabled: isAuthenticated && isChatOpen,
     refetchInterval: 10000,
+  });
+
+  const { data: allUsers = [] } = useQuery<UserType[]>({
+    queryKey: ["/api/users"],
+    enabled: isAuthenticated && showUserPicker,
   });
 
   const { data: messages = [] } = useQuery<MessageWithUser[]>({
@@ -61,6 +92,34 @@ export function TopBar() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/chat/groups", selectedGroup?.id, "messages"] });
       setMessage("");
+    },
+  });
+
+  const clearChatMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedGroup) return;
+      return apiRequest("DELETE", `/api/chat/groups/${selectedGroup.id}/messages`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/groups", selectedGroup?.id, "messages"] });
+    },
+  });
+
+  const createPrivateChatMutation = useMutation({
+    mutationFn: async (targetUserId: string) => {
+      const res = await fetch("/api/chat/private", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ targetUserId }),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Ozel sohbet olusturulamadi");
+      return res.json();
+    },
+    onSuccess: (group: ChatGroupWithPrivate) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/chat/groups"] });
+      setShowUserPicker(false);
+      setSelectedGroup(group);
     },
   });
 
@@ -106,22 +165,15 @@ export function TopBar() {
     return null;
   }
 
+  const publicGroups = groups.filter(g => !g.isPrivate);
+  const privateGroups = groups.filter(g => g.isPrivate);
+
   return (
     <>
       <div
         className="fixed right-4 z-[60] flex items-center gap-2"
         style={{ top: `${topOffset}px` }}
       >
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => setIsChatOpen(true)}
-          className="bg-background/95 border-primary/50 shadow-lg hover:bg-primary/20"
-          data-testid="button-chat"
-        >
-          <MessageCircle className="w-5 h-5 text-primary" />
-        </Button>
-
         <Button
           variant="outline"
           size="icon"
@@ -192,8 +244,18 @@ export function TopBar() {
         </DropdownMenu>
       </div>
 
+      <Button
+        variant="default"
+        size="icon"
+        onClick={() => setIsChatOpen(true)}
+        className="fixed bottom-6 right-6 z-[60] w-14 h-14 rounded-full shadow-2xl bg-primary hover:bg-primary/90"
+        data-testid="button-chat"
+      >
+        <MessageCircle className="w-6 h-6" />
+      </Button>
+
       {isChatOpen && (
-        <Card className="fixed top-16 right-4 z-50 w-80 h-96 shadow-2xl border-primary/30 flex flex-col">
+        <Card className="fixed bottom-24 right-6 z-[59] w-80 h-[28rem] shadow-2xl border-primary/30 flex flex-col">
           <CardHeader className="p-3 border-b flex flex-row items-center gap-2">
             {selectedGroup && (
               <Button
@@ -206,9 +268,92 @@ export function TopBar() {
                 <ChevronLeft className="w-4 h-4" />
               </Button>
             )}
-            <CardTitle className="text-sm flex-1">
-              {selectedGroup ? selectedGroup.name : "Canli Sohbet"}
+            <CardTitle className="text-sm flex-1 flex items-center gap-1">
+              {selectedGroup ? (
+                <>
+                  {selectedGroup.isPrivate && <Lock className="w-3 h-3 text-primary" />}
+                  {selectedGroup.name}
+                </>
+              ) : (
+                "Canli Sohbet"
+              )}
             </CardTitle>
+            {!selectedGroup && isAdminOrMod && (
+              <Dialog open={showUserPicker} onOpenChange={setShowUserPicker}>
+                <DialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    data-testid="button-new-private-chat"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Ozel Sohbet Baslat</DialogTitle>
+                  </DialogHeader>
+                  <ScrollArea className="h-64 mt-4">
+                    <div className="space-y-2">
+                      {allUsers
+                        .filter((u) => u.id !== user?.id)
+                        .map((u) => (
+                          <div
+                            key={u.id}
+                            onClick={() => createPrivateChatMutation.mutate(u.id)}
+                            className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer"
+                            data-testid={`user-select-${u.id}`}
+                          >
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={u.avatar || undefined} />
+                              <AvatarFallback className="bg-primary/20 text-primary">
+                                {u.displayName?.charAt(0) || "U"}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">{u.displayName}</p>
+                              <p className="text-xs text-muted-foreground truncate">@{u.username}</p>
+                            </div>
+                            <RoleBadge role={(u.role as UserRoleType) || "USER"} />
+                          </div>
+                        ))}
+                    </div>
+                  </ScrollArea>
+                </DialogContent>
+              </Dialog>
+            )}
+            {selectedGroup && isAdminOrMod && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    data-testid="button-clear-chat"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Sohbeti Temizle</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Tum mesajlar silinecek. Bu islem geri alinamaz.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Iptal</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => clearChatMutation.mutate()}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Temizle
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -227,29 +372,57 @@ export function TopBar() {
             {!selectedGroup ? (
               <ScrollArea className="flex-1 p-2">
                 <div className="space-y-2">
-                  {groups.length === 0 ? (
+                  {publicGroups.length === 0 && privateGroups.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-8">
                       Henuz grup yok
                     </p>
                   ) : (
-                    groups.map((group) => (
-                      <div
-                        key={group.id}
-                        onClick={() => setSelectedGroup(group)}
-                        className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer"
-                        data-testid={`chat-group-${group.id}`}
-                      >
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                          <Users className="w-5 h-5 text-primary" />
+                    <>
+                      {publicGroups.map((group) => (
+                        <div
+                          key={group.id}
+                          onClick={() => setSelectedGroup(group)}
+                          className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer"
+                          data-testid={`chat-group-${group.id}`}
+                        >
+                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                            <Users className="w-5 h-5 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-medium truncate">{group.name}</p>
+                            <p className="text-xs text-muted-foreground truncate">
+                              {group.description || "Sohbet grubu"}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-medium truncate">{group.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {group.description || "Sohbet grubu"}
-                          </p>
-                        </div>
-                      </div>
-                    ))
+                      ))}
+                      {privateGroups.length > 0 && (
+                        <>
+                          <div className="text-xs text-muted-foreground font-medium mt-4 mb-2 px-1 flex items-center gap-1">
+                            <Lock className="w-3 h-3" />
+                            Ozel Sohbetler
+                          </div>
+                          {privateGroups.map((group) => (
+                            <div
+                              key={group.id}
+                              onClick={() => setSelectedGroup(group)}
+                              className="flex items-center gap-3 p-2 rounded-md hover-elevate cursor-pointer"
+                              data-testid={`chat-group-${group.id}`}
+                            >
+                              <div className="w-10 h-10 rounded-full bg-accent/50 flex items-center justify-center">
+                                <Lock className="w-5 h-5 text-primary" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium truncate">{group.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {group.description || "Ozel sohbet"}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </>
                   )}
                 </div>
               </ScrollArea>
@@ -268,11 +441,9 @@ export function TopBar() {
                           </AvatarFallback>
                         </Avatar>
                         <div className={`max-w-[85%] ${msg.userId === user?.id ? "text-right" : ""}`}>
-                          {msg.userId !== user?.id && (
-                            <p className="text-[10px] font-bold text-primary mb-0.5 ml-1">
-                              {msg.user?.displayName || "Kullanici"}
-                            </p>
-                          )}
+                          <p className={`text-[10px] font-bold mb-0.5 ${msg.userId === user?.id ? "mr-1 text-primary" : "ml-1 text-primary"}`}>
+                            {msg.user?.displayName || "Kullanici"}
+                          </p>
                           <div
                             className={`p-2 rounded-2xl text-sm shadow-sm relative ${
                               msg.userId === user?.id
