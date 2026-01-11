@@ -90,6 +90,22 @@ export async function registerRoutes(
     res.json(userWithoutPassword);
   });
 
+  app.patch("/api/user/profile", requireAuth, async (req, res) => {
+    const { avatar, displayName } = req.body;
+    const updates: Record<string, any> = {};
+    
+    if (avatar !== undefined) updates.avatar = avatar;
+    if (displayName) updates.displayName = displayName;
+    
+    const user = await storage.updateUser(req.session.userId!, updates);
+    if (!user) {
+      return res.status(404).json({ message: "Kullanici bulunamadi" });
+    }
+    
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  });
+
   app.get("/api/stats", requireAuth, async (req, res) => {
     const stats = await storage.getStats();
     res.json(stats);

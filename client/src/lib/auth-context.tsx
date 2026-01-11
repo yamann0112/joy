@@ -7,6 +7,7 @@ interface AuthContextType {
   login: (user: User) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  refetchUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -46,6 +47,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Logout failed:", error);
     }
   };
+  
+  const refetchUser = async () => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData);
+      }
+    } catch (error) {
+      console.error("Refetch user failed:", error);
+    }
+  };
 
   return (
     <AuthContext.Provider
@@ -55,6 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         logout,
         isAuthenticated: !!user,
+        refetchUser,
       }}
     >
       {children}

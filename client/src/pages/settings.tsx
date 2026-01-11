@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,12 +16,44 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
-  const { isAuthenticated, isLoading: authLoading, user } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, user, refetchUser } = useAuth();
   const { hasAnnouncement } = useAnnouncement();
   const { toast } = useToast();
   const [filmUrl, setFilmUrl] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const isAdmin = user?.role === "ADMIN";
+  
+  const updateAvatarMutation = useMutation({
+    mutationFn: async (avatar: string) => {
+      return apiRequest("PATCH", "/api/user/profile", { avatar });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
+      refetchUser?.();
+      toast({ title: "Basarili", description: "Profil resmi guncellendi" });
+    },
+    onError: (error: any) => {
+      toast({ title: "Hata", description: error.message, variant: "destructive" });
+    },
+  });
+  
+  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > 2 * 1024 * 1024) {
+      toast({ title: "Hata", description: "Dosya boyutu 2MB'dan kucuk olmali", variant: "destructive" });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      updateAvatarMutation.mutate(base64);
+    };
+    reader.readAsDataURL(file);
+  };
   
   const { data: filmSettings } = useQuery({
     queryKey: ["/api/settings/film"],
@@ -84,13 +116,27 @@ export default function Settings() {
                     {user?.displayName?.charAt(0).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleAvatarChange}
+                  accept="image/*"
+                  className="hidden"
+                  data-testid="input-avatar-file"
+                />
                 <Button
                   variant="secondary"
                   size="icon"
                   className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={updateAvatarMutation.isPending}
                   data-testid="button-change-avatar"
                 >
-                  <Camera className="w-4 h-4" />
+                  {updateAvatarMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Camera className="w-4 h-4" />
+                  )}
                 </Button>
               </div>
               <div className="flex-1">
