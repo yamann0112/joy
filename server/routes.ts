@@ -53,6 +53,10 @@ export async function registerRoutes(
       await storage.updateUser(user.id, { isOnline: true });
       req.session.userId = user.id;
       
+      if (validatedData.rememberMe) {
+        req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000;
+      }
+      
       const { password, ...userWithoutPassword } = user;
       res.json(userWithoutPassword);
     } catch (error: any) {
@@ -205,6 +209,48 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Grup bulunamadı" });
     }
     res.json({ message: "Grup silindi" });
+  });
+
+  app.get("/api/chat/groups/:id/messages", requireAuth, async (req, res) => {
+    const messages = await storage.getChatMessages(req.params.id);
+    
+    const messagesWithUsers = await Promise.all(
+      messages.map(async (msg) => {
+        const user = await storage.getUser(msg.userId);
+        if (!user) {
+          return { ...msg, user: null };
+        }
+        const { password, ...userWithoutPassword } = user;
+        return { ...msg, user: userWithoutPassword };
+      })
+    );
+    
+    res.json(messagesWithUsers);
+  });
+
+  app.post("/api/chat/groups/:id/messages", requireAuth, async (req, res) => {
+    try {
+      const validatedData = insertChatMessageSchema.parse({
+        ...req.body,
+        groupId: req.params.id,
+      });
+      
+      const message = await storage.createChatMessage({
+        ...validatedData,
+        userId: req.session.userId!,
+      });
+      
+      const user = await storage.getUser(req.session.userId!);
+      if (!user) {
+        res.status(201).json({ ...message, user: null });
+        return;
+      }
+      const { password, ...userWithoutPassword } = user;
+      
+      res.status(201).json({ ...message, user: userWithoutPassword });
+    } catch (error: any) {
+      res.status(400).json({ message: error.message || "Mesaj gönderilemedi" });
+    }
   });
 
   app.delete("/api/chat/groups/:id/messages", requireAuth, async (req, res) => {

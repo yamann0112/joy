@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/lib/auth-context";
 import { useQuery } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -75,10 +76,20 @@ function AnnouncementMarquee() {
 function QuickLoginBox() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
   const { toast } = useToast();
   const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    const savedUsername = localStorage.getItem("joy_username");
+    const savedRemember = localStorage.getItem("joy_remember");
+    if (savedRemember === "true" && savedUsername) {
+      setUsername(savedUsername);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,8 +97,17 @@ function QuickLoginBox() {
     
     setIsLoading(true);
     try {
-      const response = await apiRequest("POST", "/api/auth/login", { username, password });
+      const response = await apiRequest("POST", "/api/auth/login", { username, password, rememberMe });
       const user = await response.json();
+      
+      if (rememberMe) {
+        localStorage.setItem("joy_username", username);
+        localStorage.setItem("joy_remember", "true");
+      } else {
+        localStorage.removeItem("joy_username");
+        localStorage.removeItem("joy_remember");
+      }
+      
       login(user);
       setLocation("/dashboard");
     } catch (error: any) {
@@ -119,6 +139,15 @@ function QuickLoginBox() {
         className="w-28 h-8 text-sm"
         data-testid="input-quick-password"
       />
+      <div className="flex items-center gap-1">
+        <Checkbox 
+          id="remember" 
+          checked={rememberMe} 
+          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+          data-testid="checkbox-remember"
+        />
+        <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer">Hatirla</label>
+      </div>
       <Button 
         type="submit" 
         size="sm" 

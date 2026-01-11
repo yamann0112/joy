@@ -93,13 +93,13 @@ export function HamburgerMenu() {
   return (
     <>
       <Button
-        variant="ghost"
+        variant="outline"
         size="icon"
         onClick={() => setIsOpen(true)}
-        className={`fixed left-4 z-50 ${hasAnnouncement ? "top-12" : "top-4"}`}
+        className={`fixed left-4 z-50 bg-background/90 border-primary/50 shadow-lg ${hasAnnouncement ? "top-14" : "top-4"}`}
         data-testid="button-hamburger-menu"
       >
-        <Menu className="w-6 h-6" />
+        <Menu className="w-6 h-6 text-primary" />
       </Button>
 
       {isOpen && (

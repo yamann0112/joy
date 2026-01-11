@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/lib/auth-context";
 import { GlobalAnnouncement } from "@/components/global-announcement";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { FloatingChat } from "@/components/floating-chat";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -43,6 +45,8 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <GlobalAnnouncement />
+          <ThemeToggle />
+          <FloatingChat />
           <Toaster />
           <Router />
         </AuthProvider>

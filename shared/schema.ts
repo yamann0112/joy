@@ -137,6 +137,7 @@ export type Announcement = typeof announcements.$inferSelect;
 export const loginSchema = z.object({
   username: z.string().min(1, "Kullanıcı adı gerekli"),
   password: z.string().min(1, "Şifre gerekli"),
+  rememberMe: z.boolean().optional(),
 });
 
 export type LoginInput = z.infer<typeof loginSchema>;
