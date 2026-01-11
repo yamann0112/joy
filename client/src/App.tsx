@@ -63,7 +63,6 @@ function App() {
       <TooltipProvider>
         <AuthProvider>
           <GlobalAnnouncement />
-          <JoyBanner />
           <BackgroundMusicPlayer />
           <HamburgerMenuProvider>
             <HamburgerMenuSidebar />
