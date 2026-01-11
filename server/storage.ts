@@ -1,20 +1,192 @@
-import { type User, type InsertUser } from "@shared/schema";
+import { 
+  type User, type InsertUser, 
+  type Event, type InsertEvent,
+  type ChatGroup, type InsertChatGroup,
+  type ChatMessage, type InsertChatMessage,
+  type Ticket, type InsertTicket
+} from "@shared/schema";
 import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
 
 export interface IStorage {
   getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
+  updateUser(id: string, updates: Partial<User>): Promise<User | undefined>;
+
+  getEvents(): Promise<Event[]>;
+  getEvent(id: string): Promise<Event | undefined>;
+  createEvent(event: InsertEvent & { createdBy: string }): Promise<Event>;
+
+  getChatGroups(): Promise<ChatGroup[]>;
+  getChatGroup(id: string): Promise<ChatGroup | undefined>;
+  createChatGroup(group: InsertChatGroup & { createdBy: string }): Promise<ChatGroup>;
+
+  getChatMessages(groupId: string): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage & { userId: string }): Promise<ChatMessage>;
+
+  getTickets(userId?: string): Promise<Ticket[]>;
+  getTicket(id: string): Promise<Ticket | undefined>;
+  createTicket(ticket: InsertTicket & { userId: string }): Promise<Ticket>;
+  updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket | undefined>;
+
+  getStats(): Promise<{
+    totalUsers: number;
+    totalEvents: number;
+    totalMessages: number;
+    totalTickets: number;
+  }>;
 }
 
 export class MemStorage implements IStorage {
   private users: Map<string, User>;
+  private events: Map<string, Event>;
+  private chatGroups: Map<string, ChatGroup>;
+  private chatMessages: Map<string, ChatMessage>;
+  private tickets: Map<string, Ticket>;
 
   constructor() {
     this.users = new Map();
+    this.events = new Map();
+    this.chatGroups = new Map();
+    this.chatMessages = new Map();
+    this.tickets = new Map();
+
+    this.seedData();
+  }
+
+  private seedData() {
+    const adminId = randomUUID();
+    const adminUser: User = {
+      id: adminId,
+      username: "admin",
+      password: "admin123",
+      displayName: "Platform Admin",
+      role: "ADMIN",
+      avatar: null,
+      level: 50,
+      isOnline: true,
+      createdAt: new Date(),
+    };
+    this.users.set(adminId, adminUser);
+
+    const modId = randomUUID();
+    const modUser: User = {
+      id: modId,
+      username: "moderator",
+      password: "mod123",
+      displayName: "Moderatör",
+      role: "MOD",
+      avatar: null,
+      level: 30,
+      isOnline: true,
+      createdAt: new Date(),
+    };
+    this.users.set(modId, modUser);
+
+    const vipId = randomUUID();
+    const vipUser: User = {
+      id: vipId,
+      username: "vipuser",
+      password: "vip123",
+      displayName: "VIP Üye",
+      role: "VIP",
+      avatar: null,
+      level: 20,
+      isOnline: false,
+      createdAt: new Date(),
+    };
+    this.users.set(vipId, vipUser);
+
+    const group1Id = randomUUID();
+    this.chatGroups.set(group1Id, {
+      id: group1Id,
+      name: "Genel Sohbet",
+      description: "Herkese açık genel sohbet grubu",
+      createdBy: adminId,
+      createdAt: new Date(),
+    });
+
+    const group2Id = randomUUID();
+    this.chatGroups.set(group2Id, {
+      id: group2Id,
+      name: "VIP Lounge",
+      description: "VIP üyelere özel sohbet alanı",
+      createdBy: adminId,
+      createdAt: new Date(),
+    });
+
+    const group3Id = randomUUID();
+    this.chatGroups.set(group3Id, {
+      id: group3Id,
+      name: "Etkinlik Duyuruları",
+      description: "Etkinlik ve PK duyuruları",
+      createdBy: modId,
+      createdAt: new Date(),
+    });
+
+    const event1Id = randomUUID();
+    this.events.set(event1Id, {
+      id: event1Id,
+      title: "Haftalık PK Yarışması",
+      description: "Her hafta düzenlenen büyük PK etkinliği. Ödüller ve sürprizler sizi bekliyor!",
+      agencyName: "Elite Agency",
+      agencyLogo: null,
+      participantCount: 24,
+      participants: ["Ali", "Veli", "Ayşe", "Fatma", "Mehmet"],
+      scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+      isLive: false,
+      createdBy: adminId,
+      createdAt: new Date(),
+    });
+
+    const event2Id = randomUUID();
+    this.events.set(event2Id, {
+      id: event2Id,
+      title: "VIP Özel Yayın",
+      description: "VIP üyelere özel canlı yayın etkinliği",
+      agencyName: "Premium Productions",
+      agencyLogo: null,
+      participantCount: 12,
+      participants: ["Crown", "Star", "Diamond"],
+      scheduledAt: new Date(Date.now() + 1 * 60 * 60 * 1000),
+      isLive: true,
+      createdBy: modId,
+      createdAt: new Date(),
+    });
+
+    const event3Id = randomUUID();
+    this.events.set(event3Id, {
+      id: event3Id,
+      title: "Yeni Başlayanlar Rehberi",
+      description: "Platform kullanımı hakkında bilgilendirme etkinliği",
+      agencyName: "Community Team",
+      agencyLogo: null,
+      participantCount: 45,
+      participants: ["Helper1", "Helper2", "Guide"],
+      scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      isLive: false,
+      createdBy: adminId,
+      createdAt: new Date(),
+    });
+
+    const msg1Id = randomUUID();
+    this.chatMessages.set(msg1Id, {
+      id: msg1Id,
+      groupId: group1Id,
+      userId: adminId,
+      content: "Herkese merhaba! Platforma hoş geldiniz.",
+      createdAt: new Date(Date.now() - 60 * 60 * 1000),
+    });
+
+    const msg2Id = randomUUID();
+    this.chatMessages.set(msg2Id, {
+      id: msg2Id,
+      groupId: group1Id,
+      userId: modId,
+      content: "Merhaba! Herhangi bir sorunuz varsa yardımcı olmaktan mutluluk duyarım.",
+      createdAt: new Date(Date.now() - 30 * 60 * 1000),
+    });
   }
 
   async getUser(id: string): Promise<User | undefined> {
@@ -29,9 +201,137 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const user: User = { 
+      ...insertUser, 
+      id,
+      role: "USER",
+      avatar: null,
+      level: 1,
+      isOnline: true,
+      createdAt: new Date(),
+    };
     this.users.set(id, user);
     return user;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async updateUser(id: string, updates: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async getEvents(): Promise<Event[]> {
+    return Array.from(this.events.values()).sort(
+      (a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime()
+    );
+  }
+
+  async getEvent(id: string): Promise<Event | undefined> {
+    return this.events.get(id);
+  }
+
+  async createEvent(event: InsertEvent & { createdBy: string }): Promise<Event> {
+    const id = randomUUID();
+    const newEvent: Event = {
+      ...event,
+      id,
+      participantCount: 0,
+      participants: [],
+      isLive: false,
+      createdAt: new Date(),
+    };
+    this.events.set(id, newEvent);
+    return newEvent;
+  }
+
+  async getChatGroups(): Promise<ChatGroup[]> {
+    return Array.from(this.chatGroups.values());
+  }
+
+  async getChatGroup(id: string): Promise<ChatGroup | undefined> {
+    return this.chatGroups.get(id);
+  }
+
+  async createChatGroup(group: InsertChatGroup & { createdBy: string }): Promise<ChatGroup> {
+    const id = randomUUID();
+    const newGroup: ChatGroup = {
+      ...group,
+      id,
+      createdAt: new Date(),
+    };
+    this.chatGroups.set(id, newGroup);
+    return newGroup;
+  }
+
+  async getChatMessages(groupId: string): Promise<ChatMessage[]> {
+    return Array.from(this.chatMessages.values())
+      .filter((msg) => msg.groupId === groupId)
+      .sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
+  }
+
+  async createChatMessage(message: InsertChatMessage & { userId: string }): Promise<ChatMessage> {
+    const id = randomUUID();
+    const newMessage: ChatMessage = {
+      ...message,
+      id,
+      createdAt: new Date(),
+    };
+    this.chatMessages.set(id, newMessage);
+    return newMessage;
+  }
+
+  async getTickets(userId?: string): Promise<Ticket[]> {
+    let tickets = Array.from(this.tickets.values());
+    if (userId) {
+      tickets = tickets.filter((t) => t.userId === userId);
+    }
+    return tickets.sort(
+      (a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime()
+    );
+  }
+
+  async getTicket(id: string): Promise<Ticket | undefined> {
+    return this.tickets.get(id);
+  }
+
+  async createTicket(ticket: InsertTicket & { userId: string }): Promise<Ticket> {
+    const id = randomUUID();
+    const newTicket: Ticket = {
+      ...ticket,
+      id,
+      status: "open",
+      createdAt: new Date(),
+    };
+    this.tickets.set(id, newTicket);
+    return newTicket;
+  }
+
+  async updateTicket(id: string, updates: Partial<Ticket>): Promise<Ticket | undefined> {
+    const ticket = this.tickets.get(id);
+    if (!ticket) return undefined;
+    const updatedTicket = { ...ticket, ...updates };
+    this.tickets.set(id, updatedTicket);
+    return updatedTicket;
+  }
+
+  async getStats(): Promise<{
+    totalUsers: number;
+    totalEvents: number;
+    totalMessages: number;
+    totalTickets: number;
+  }> {
+    return {
+      totalUsers: this.users.size,
+      totalEvents: this.events.size,
+      totalMessages: this.chatMessages.size,
+      totalTickets: this.tickets.size,
+    };
   }
 }
 

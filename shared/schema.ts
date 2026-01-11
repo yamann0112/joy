@@ -1,18 +1,119 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, varchar } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, timestamp, integer, boolean } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+
+export const UserRole = {
+  USER: "USER",
+  VIP: "VIP",
+  MOD: "MOD",
+  ADMIN: "ADMIN",
+} as const;
+
+export type UserRoleType = typeof UserRole[keyof typeof UserRole];
 
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
+  displayName: text("display_name").notNull(),
+  role: text("role").notNull().default("USER"),
+  avatar: text("avatar"),
+  level: integer("level").notNull().default(1),
+  isOnline: boolean("is_online").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
+  displayName: true,
+}).extend({
+  username: z.string().min(3, "Kullanıcı adı en az 3 karakter olmalı"),
+  password: z.string().min(6, "Şifre en az 6 karakter olmalı"),
+  displayName: z.string().min(2, "Görünen isim en az 2 karakter olmalı"),
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export const events = pgTable("events", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: text("title").notNull(),
+  description: text("description"),
+  agencyName: text("agency_name").notNull(),
+  agencyLogo: text("agency_logo"),
+  participantCount: integer("participant_count").notNull().default(0),
+  participants: text("participants").array(),
+  scheduledAt: timestamp("scheduled_at").notNull(),
+  isLive: boolean("is_live").notNull().default(false),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertEventSchema = createInsertSchema(events).pick({
+  title: true,
+  description: true,
+  agencyName: true,
+  agencyLogo: true,
+  scheduledAt: true,
+});
+
+export type InsertEvent = z.infer<typeof insertEventSchema>;
+export type Event = typeof events.$inferSelect;
+
+export const chatGroups = pgTable("chat_groups", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: text("name").notNull(),
+  description: text("description"),
+  createdBy: varchar("created_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertChatGroupSchema = createInsertSchema(chatGroups).pick({
+  name: true,
+  description: true,
+});
+
+export type InsertChatGroup = z.infer<typeof insertChatGroupSchema>;
+export type ChatGroup = typeof chatGroups.$inferSelect;
+
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  groupId: varchar("group_id").notNull(),
+  userId: varchar("user_id").notNull(),
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
+  groupId: true,
+  content: true,
+});
+
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export const tickets = pgTable("tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull(),
+  subject: text("subject").notNull(),
+  message: text("message").notNull(),
+  status: text("status").notNull().default("open"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTicketSchema = createInsertSchema(tickets).pick({
+  subject: true,
+  message: true,
+});
+
+export type InsertTicket = z.infer<typeof insertTicketSchema>;
+export type Ticket = typeof tickets.$inferSelect;
+
+export const loginSchema = z.object({
+  username: z.string().min(1, "Kullanıcı adı gerekli"),
+  password: z.string().min(1, "Şifre gerekli"),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
