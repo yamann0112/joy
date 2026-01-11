@@ -121,43 +121,103 @@ function QuickLoginBox() {
     }
   };
 
+  const [showMobileLogin, setShowMobileLogin] = useState(false);
+
   return (
-    <form onSubmit={handleLogin} className="flex items-center gap-2">
-      <Input
-        type="text"
-        placeholder="Kullanici"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        className="w-28 h-8 text-sm"
-        data-testid="input-quick-username"
-      />
-      <Input
-        type="password"
-        placeholder="Sifre"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-28 h-8 text-sm"
-        data-testid="input-quick-password"
-      />
-      <div className="flex items-center gap-1">
-        <Checkbox 
-          id="remember" 
-          checked={rememberMe} 
-          onCheckedChange={(checked) => setRememberMe(checked as boolean)}
-          data-testid="checkbox-remember"
+    <>
+      {/* Desktop login form */}
+      <form onSubmit={handleLogin} className="hidden sm:flex items-center gap-2">
+        <Input
+          type="text"
+          placeholder="Kullanici"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="w-28 h-8 text-sm"
+          data-testid="input-quick-username"
         />
-        <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer">Hatirla</label>
+        <Input
+          type="password"
+          placeholder="Sifre"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-28 h-8 text-sm"
+          data-testid="input-quick-password"
+        />
+        <div className="flex items-center gap-1">
+          <Checkbox 
+            id="remember" 
+            checked={rememberMe} 
+            onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+            data-testid="checkbox-remember"
+          />
+          <label htmlFor="remember" className="text-xs text-muted-foreground cursor-pointer">Hatirla</label>
+        </div>
+        <Button 
+          type="submit" 
+          size="sm" 
+          disabled={isLoading || !username || !password}
+          className="h-8"
+          data-testid="button-quick-login"
+        >
+          <LogIn className="w-4 h-4" />
+        </Button>
+      </form>
+
+      {/* Mobile login button */}
+      <div className="sm:hidden">
+        <Button 
+          size="sm"
+          onClick={() => setShowMobileLogin(!showMobileLogin)}
+          className="h-8 gap-2"
+          data-testid="button-mobile-login-toggle"
+        >
+          <LogIn className="w-4 h-4" />
+          <span>Giris</span>
+        </Button>
       </div>
-      <Button 
-        type="submit" 
-        size="sm" 
-        disabled={isLoading || !username || !password}
-        className="h-8"
-        data-testid="button-quick-login"
-      >
-        <LogIn className="w-4 h-4" />
-      </Button>
-    </form>
+
+      {/* Mobile login dropdown */}
+      {showMobileLogin && (
+        <div className="sm:hidden absolute top-full left-0 right-0 bg-background/95 backdrop-blur-md border-b border-border p-4 z-50">
+          <form onSubmit={handleLogin} className="flex flex-col gap-3">
+            <Input
+              type="text"
+              placeholder="Kullanici Adi"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="h-10 text-base"
+              data-testid="input-mobile-username"
+            />
+            <Input
+              type="password"
+              placeholder="Sifre"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="h-10 text-base"
+              data-testid="input-mobile-password"
+            />
+            <div className="flex items-center gap-2">
+              <Checkbox 
+                id="remember-mobile" 
+                checked={rememberMe} 
+                onCheckedChange={(checked) => setRememberMe(checked as boolean)}
+                data-testid="checkbox-remember-mobile"
+              />
+              <label htmlFor="remember-mobile" className="text-sm text-muted-foreground cursor-pointer">Beni Hatirla</label>
+            </div>
+            <Button 
+              type="submit" 
+              disabled={isLoading || !username || !password}
+              className="w-full h-10"
+              data-testid="button-mobile-login-submit"
+            >
+              <LogIn className="w-4 h-4 mr-2" />
+              Giris Yap
+            </Button>
+          </form>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -171,7 +231,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col">
       <header className="fixed top-0 left-0 right-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full gold-gradient flex items-center justify-center">
               <Crown className="w-5 h-5 text-black" />
