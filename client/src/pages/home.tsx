@@ -198,11 +198,20 @@ export default function Home() {
               <span className="text-sm font-medium text-primary">Premium Ajans Platformu</span>
             </div>
 
-            <h1 className="text-5xl md:text-7xl font-bold mb-6">
-              <span className="text-foreground">Elit Toplulukta</span>
+            <h1 className="text-6xl md:text-8xl font-black mb-8 tracking-tighter italic">
+              <span className="text-foreground drop-shadow-2xl">ELİT</span>
               <br />
-              <span className="text-gradient-gold">Yerinizi Alin</span>
+              <span className="text-gradient-gold drop-shadow-[0_0_15px_rgba(212,175,55,0.5)]">TOPLULUK</span>
             </h1>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-12">
+              <Button size="lg" className="gold-gradient text-black font-bold px-8 h-12 text-lg hover:scale-105 transition-transform">
+                Simdi Katil
+              </Button>
+              <Button size="lg" variant="outline" className="border-primary/50 text-primary px-8 h-12 text-lg hover:bg-primary/10 transition-colors">
+                Daha Fazla Bilgi
+              </Button>
+            </div>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10">
               PK etkinlikleri, ozel sohbet gruplari ve VIP avantajlariyla

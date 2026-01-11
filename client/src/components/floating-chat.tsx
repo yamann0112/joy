@@ -144,22 +144,26 @@ export function FloatingChat() {
                             {msg.user?.displayName?.charAt(0) || "U"}
                           </AvatarFallback>
                         </Avatar>
-                        <div className={`max-w-[70%] ${msg.userId === user?.id ? "text-right" : ""}`}>
-                          <p className="text-xs text-muted-foreground mb-1">
-                            {msg.user?.displayName || "Kullanici"}
-                          </p>
+                        <div className={`max-w-[85%] ${msg.userId === user?.id ? "text-right" : ""}`}>
+                          {msg.userId !== user?.id && (
+                            <p className="text-[10px] font-bold text-primary mb-0.5 ml-1">
+                              {msg.user?.displayName || "Kullanici"}
+                            </p>
+                          )}
                           <div
-                            className={`p-2 rounded-lg text-sm ${
+                            className={`p-2 rounded-2xl text-sm shadow-sm relative ${
                               msg.userId === user?.id
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-muted"
+                                ? "bg-[#056162] text-white rounded-tr-none"
+                                : "bg-muted text-foreground rounded-tl-none"
                             }`}
                           >
                             {msg.content}
+                            <div className="flex justify-end mt-0.5 -mb-0.5 ml-2">
+                               <span className="text-[9px] opacity-70">
+                                 {msg.createdAt && new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                               </span>
+                            </div>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            {msg.createdAt && formatDistanceToNow(new Date(msg.createdAt), { addSuffix: true, locale: tr })}
-                          </p>
                         </div>
                       </div>
                     ))}

@@ -19,15 +19,14 @@ export function ThemeToggle() {
   }, []);
 
   const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      localStorage.setItem("joy_theme", "light");
-      setIsDark(false);
-    } else {
+    const newTheme = !isDark ? "dark" : "light";
+    setIsDark(!isDark);
+    if (newTheme === "dark") {
       document.documentElement.classList.add("dark");
-      localStorage.setItem("joy_theme", "dark");
-      setIsDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
     }
+    localStorage.setItem("joy_theme", newTheme);
   };
 
   return (

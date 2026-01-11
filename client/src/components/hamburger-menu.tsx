@@ -99,7 +99,7 @@ export function HamburgerMenu() {
         className={`fixed left-4 z-50 bg-background/90 border-primary/50 shadow-lg ${hasAnnouncement ? "top-14" : "top-4"}`}
         data-testid="button-hamburger-menu"
       >
-        <Menu className="w-6 h-6 text-primary" />
+        <Menu className="w-6 h-6 text-primary" strokeWidth={3} />
       </Button>
 
       {isOpen && (
