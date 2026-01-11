@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   return (
     <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-20" : "pt-16"}`}>
-      <div className="pb-2 px-2 sm:px-4">
+      <div className="pb-2">
         <BannerCarousel />
       </div>
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-8">

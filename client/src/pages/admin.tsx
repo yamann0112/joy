@@ -639,6 +639,7 @@ export default function Admin() {
                       </div>
                       <div className="space-y-2">
                         <Label>Gorsel URL</Label>
+                        <p className="text-xs text-muted-foreground">Onerilen boyut: 740x106 piksel</p>
                         <Input
                           data-testid="input-new-banner-image"
                           value={newBanner.imageUrl}
@@ -806,6 +807,7 @@ export default function Admin() {
                   </div>
                   <div className="space-y-2">
                     <Label>Gorsel URL</Label>
+                    <p className="text-xs text-muted-foreground">Onerilen boyut: 740x106 piksel</p>
                     <Input
                       data-testid="input-edit-banner-image"
                       value={editBannerData.imageUrl}

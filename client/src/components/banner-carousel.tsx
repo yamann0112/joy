@@ -40,8 +40,8 @@ export function BannerCarousel() {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-[740px] mx-auto px-2 sm:px-0">
-        <div className="w-full aspect-[740/106] rounded-lg sm:rounded-xl bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
+      <div className="w-full">
+        <div className="w-full aspect-[740/106] bg-gradient-to-r from-primary/20 via-primary/10 to-primary/20 animate-pulse" />
       </div>
     );
   }
@@ -51,10 +51,10 @@ export function BannerCarousel() {
   }
 
   return (
-    <div className="w-full max-w-[740px] mx-auto px-2 sm:px-0" data-testid="banner-carousel">
+    <div className="w-full" data-testid="banner-carousel">
       <div 
         ref={containerRef}
-        className="relative w-full aspect-[740/106] rounded-lg sm:rounded-xl overflow-hidden shadow-xl shadow-primary/20"
+        className="relative w-full aspect-[740/106] overflow-hidden shadow-xl shadow-primary/20"
       >
         <div 
           className="flex h-full transition-transform duration-600 ease-out"
