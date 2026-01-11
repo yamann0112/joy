@@ -8,7 +8,6 @@ import { Calendar, MessageSquare, Crown, Ticket, Film, Users } from "lucide-reac
 import { Link, Redirect } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useAnnouncement } from "@/hooks/use-announcement";
-import { BannerCarousel } from "@/components/banner-carousel";
 
 export default function Dashboard() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -30,13 +29,9 @@ export default function Dashboard() {
   const canAccessVip = userRole === "VIP" || userRole === "MOD" || userRole === "ADMIN";
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Banner positioned right after announcement marquee */}
-      <div className={`relative z-20 ${hasAnnouncement ? "pt-10" : ""}`}>
-        <BannerCarousel />
-      </div>
-      {/* Main content with spacing for TopBar controls */}
-      <div className="pt-12">
+    <div className={`min-h-screen bg-background ${hasAnnouncement ? "pt-[146px]" : "pt-[106px]"}`}>
+      {/* Main content - banner is now in App.tsx */}
+      <div className="pt-4">
       <main className="max-w-7xl mx-auto px-2 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-8">
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <Card className="lg:col-span-2">

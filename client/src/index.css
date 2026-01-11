@@ -504,4 +504,29 @@
     color: hsl(0 0% 10%);
     border-radius: 3px;
   }
+
+  /* JOY Banner - positioned after announcement, before header */
+  .joy-banner {
+    position: relative;
+    z-index: 30;
+    width: 100%;
+    background: #000;
+    display: flex;
+    justify-content: center;
+    overflow: visible;
+  }
+
+  .joy-banner-inner {
+    width: 740px;
+    height: 106px;
+    position: relative;
+  }
+
+  @media (max-width: 768px) {
+    .joy-banner-inner {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 740 / 106;
+    }
+  }
 }

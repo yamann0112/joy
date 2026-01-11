@@ -7,6 +7,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { GlobalAnnouncement } from "@/components/global-announcement";
 import { HamburgerMenuProvider, HamburgerMenuSidebar } from "@/components/hamburger-menu";
 import { TopBar } from "@/components/top-bar";
+import { BannerCarousel } from "@/components/banner-carousel";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
@@ -45,6 +46,12 @@ function AppContent() {
   return (
     <>
       <GlobalAnnouncement />
+      {/* JOY Banner - positioned after announcement, before header controls */}
+      <div className="joy-banner">
+        <div className="joy-banner-inner">
+          <BannerCarousel />
+        </div>
+      </div>
       <HamburgerMenuSidebar />
       <TopBar />
       <Toaster />
