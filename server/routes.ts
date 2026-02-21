@@ -12,17 +12,18 @@ import {
   insertEmbeddedSiteSchema,
   insertNewsSchema,
   insertNewsCommentSchema,
+  insertTicketMessageSchema, // ✅ Sende eksikti (aşağıda kullanıyorsun)
 } from "@shared/schema";
+
 import session from "express-session";
-import MemoryStore from "memorystore";
+import connectPgSimple from "connect-pg-simple";
+import pg from "pg";
 
 declare module "express-session" {
   interface SessionData {
     userId?: string;
   }
 }
-
-const MemoryStoreSession = MemoryStore(session);
 
 const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.userId) {
@@ -31,6 +32,19 @@ const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   next();
 };
 
+// ✅ Postgres Session Store (F5 ile login düşmesini bitirir)
+const PgSession = connectPgSimple(session);
+
+const pool = new pg.Pool({
+  connectionString:
+    process.env.DATABASE_URL ||
+    process.env.DATABASE_PUBLIC_URL ||
+    process.env.DATABASE_PRIVATE_URL ||
+    "",
+  // Eğer DB SSL istiyorsa aç:
+  // ssl: { rejectUnauthorized: false },
+});
+
 export async function registerRoutes(httpServer: Server, app: Express): Promise<Server> {
   await storage.seedInitialData();
 
@@ -38,11 +52,19 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.set("trust proxy", 1);
 
   const isProd = process.env.NODE_ENV === "production";
-  const cookieSecure = process.env.COOKIE_SECURE === "true" || (isProd && process.env.DISABLE_SECURE_COOKIE !== "true");
 
-  // ✅ www <-> apex arası login uçmasın diye
-  // Railway'de COOKIE_DOMAIN değişkeni yoksa prod'da otomatik .erhan.online kullanır
-  const cookieDomain = process.env.COOKIE_DOMAIN || (isProd ? ".erhan.online" : undefined);
+  // ✅ Railway'de prod için COOKIE_SECURE=true olmalı
+  const cookieSecure =
+    String(process.env.COOKIE_SECURE || (isProd ? "true" : "false")) === "true";
+
+  // ✅ www <-> apex arası login uçmasın diye (.erhan.online)
+  // Railway'de COOKIE_DOMAIN=.erhan.online set et
+  const cookieDomain =
+    process.env.COOKIE_DOMAIN && process.env.COOKIE_DOMAIN.trim().length > 0
+      ? process.env.COOKIE_DOMAIN.trim()
+      : isProd
+        ? ".erhan.online"
+        : undefined;
 
   app.use(
     session({
@@ -51,13 +73,22 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       resave: false,
       saveUninitialized: false,
       proxy: true,
-      store: new MemoryStoreSession({
-        checkPeriod: 86400000,
+
+      // ✅ MemoryStore yerine PG Store
+      store: new PgSession({
+        pool,
+        tableName: "session",
+        createTableIfMissing: true,
       }),
+
       cookie: {
         secure: cookieSecure,
         httpOnly: true,
-        sameSite: isProd ? "none" : "lax",
+
+        // ✅ Aynı domain içinde "lax" en sorunsuz olanı
+        // (none = bazen tarayıcı/SSL/proxy yüzünden uçurur)
+        sameSite: "lax",
+
         domain: cookieDomain,
         maxAge: 24 * 60 * 60 * 1000,
       },
@@ -74,7 +105,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       if ((user as any).isBanned) {
-        return res.status(403).json({ message: "Hesabınız banlanmış. Lütfen destek ile iletişime geçin." });
+        return res
+          .status(403)
+          .json({ message: "Hesabınız banlanmış. Lütfen destek ile iletişime geçin." });
       }
 
       await storage.updateUser(user.id, { isOnline: true });
@@ -99,6 +132,10 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       if (err) {
         return res.status(500).json({ message: "Çıkış yapılamadı" });
       }
+
+      // ✅ Cookie'yi de temizle
+      res.clearCookie("joy.sid", { domain: cookieDomain, path: "/" });
+
       res.json({ message: "Çıkış başarılı" });
     });
   });
@@ -448,7 +485,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       }
 
       const validatedData = insertTicketMessageSchema.parse(req.body);
-      
+
       const message = await storage.createTicketMessage({
         ...validatedData,
         ticketId: req.params.id,
@@ -877,9 +914,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.get("/api/settings/social-links", async (req, res) => {
     const joinUrl = await storage.getSetting("joinUrl");
     const moreInfoUrl = await storage.getSetting("moreInfoUrl");
-    res.json({ 
-      joinUrl: joinUrl || "", 
-      moreInfoUrl: moreInfoUrl || "" 
+    res.json({
+      joinUrl: joinUrl || "",
+      moreInfoUrl: moreInfoUrl || "",
     });
   });
 
@@ -890,7 +927,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
     }
 
     const { joinUrl, moreInfoUrl } = req.body;
-    
+
     if (joinUrl !== undefined) {
       await storage.setSetting("joinUrl", String(joinUrl || ""));
     }
@@ -898,9 +935,9 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       await storage.setSetting("moreInfoUrl", String(moreInfoUrl || ""));
     }
 
-    res.json({ 
-      joinUrl: joinUrl || "", 
-      moreInfoUrl: moreInfoUrl || "" 
+    res.json({
+      joinUrl: joinUrl || "",
+      moreInfoUrl: moreInfoUrl || "",
     });
   });
 
@@ -984,37 +1021,25 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
             src: appIconUrl?.value || "/favicon.png",
             sizes: "192x192",
             type: "image/png",
-            purpose: "any maskable"
+            purpose: "any maskable",
           },
           {
             src: appIconUrl?.value || "/favicon.png",
             sizes: "512x512",
             type: "image/png",
-            purpose: "any maskable"
-          }
+            purpose: "any maskable",
+          },
         ],
         categories: ["entertainment", "social"],
         screenshots: [],
         shortcuts: [
-          {
-            name: "Sohbet",
-            url: "/chat",
-            description: "Sohbet odasına git"
-          },
-          {
-            name: "Haberler",
-            url: "/news",
-            description: "Son haberleri gör"
-          },
-          {
-            name: "Etkinlikler",
-            url: "/events",
-            description: "Etkinlikleri görüntüle"
-          }
-        ]
+          { name: "Sohbet", url: "/chat", description: "Sohbet odasına git" },
+          { name: "Haberler", url: "/news", description: "Son haberleri gör" },
+          { name: "Etkinlikler", url: "/events", description: "Etkinlikleri görüntüle" },
+        ],
       };
 
-      res.setHeader('Content-Type', 'application/json');
+      res.setHeader("Content-Type", "application/json");
       res.json(manifest);
     } catch (error) {
       res.status(500).json({ message: "Manifest yüklenirken hata oluştu" });
@@ -1030,14 +1055,16 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
           const author = await storage.getUser(item.createdBy);
           return {
             ...item,
-            author: author ? {
-              id: author.id,
-              username: author.username,
-              displayName: author.displayName,
-              role: author.role,
-            } : null,
+            author: author
+              ? {
+                  id: author.id,
+                  username: author.username,
+                  displayName: author.displayName,
+                  role: author.role,
+                }
+              : null,
           };
-        })
+        }),
       );
       res.json(newsWithAuthors);
     } catch (error) {
@@ -1061,15 +1088,17 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
           const user = await storage.getUser(comment.userId);
           return {
             ...comment,
-            user: user ? {
-              id: user.id,
-              username: user.username,
-              displayName: user.displayName,
-              role: user.role,
-              avatar: user.avatar,
-            } : null,
+            user: user
+              ? {
+                  id: user.id,
+                  username: user.username,
+                  displayName: user.displayName,
+                  role: user.role,
+                  avatar: user.avatar,
+                }
+              : null,
           };
-        })
+        }),
       );
 
       let userLiked = false;
@@ -1080,12 +1109,14 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
 
       res.json({
         ...newsItem,
-        author: author ? {
-          id: author.id,
-          username: author.username,
-          displayName: author.displayName,
-          role: author.role,
-        } : null,
+        author: author
+          ? {
+              id: author.id,
+              username: author.username,
+              displayName: author.displayName,
+              role: author.role,
+            }
+          : null,
         comments: commentsWithUsers,
         userLiked,
       });
@@ -1162,13 +1193,15 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
       const user = await storage.getUser(req.session.userId!);
       res.status(201).json({
         ...comment,
-        user: user ? {
-          id: user.id,
-          username: user.username,
-          displayName: user.displayName,
-          role: user.role,
-          avatar: user.avatar,
-        } : null,
+        user: user
+          ? {
+              id: user.id,
+              username: user.username,
+              displayName: user.displayName,
+              role: user.role,
+              avatar: user.avatar,
+            }
+          : null,
       });
     } catch (error: any) {
       res.status(400).json({ message: error.message || "Yorum eklenirken hata oluştu" });
@@ -1196,7 +1229,7 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
   app.post("/api/news/:id/like", requireAuth, async (req, res) => {
     try {
       const existingLike = await storage.getUserNewsLike(req.params.id, req.session.userId!);
-      
+
       if (existingLike) {
         await storage.deleteNewsLike(req.params.id, req.session.userId!);
         const updated = await storage.getNewsById(req.params.id);
@@ -1224,14 +1257,16 @@ export async function registerRoutes(httpServer: Server, app: Express): Promise<
           const author = await storage.getUser(item.createdBy);
           return {
             ...item,
-            author: author ? {
-              id: author.id,
-              username: author.username,
-              displayName: author.displayName,
-              role: author.role,
-            } : null,
+            author: author
+              ? {
+                  id: author.id,
+                  username: author.username,
+                  displayName: author.displayName,
+                  role: author.role,
+                }
+              : null,
           };
-        })
+        }),
       );
       res.json(newsWithAuthors);
     } catch (error) {
