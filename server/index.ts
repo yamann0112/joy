@@ -5,6 +5,11 @@ import { createServer } from "http";
 import { Server as SocketIOServer } from "socket.io";
 
 const app = express();
+
+// ✅ Railway/Render gibi reverse-proxy arkasında HTTPS cookie/login düşmesini engeller
+// (secure cookie + proxy varsa şart)
+app.set("trust proxy", 1);
+
 const httpServer = createServer(app);
 
 /**
@@ -70,17 +75,17 @@ function canNuke(role: string) {
 function canModerateRole(actorRole: string, targetRole: string): boolean {
   const actor = roleStr(actorRole).toLowerCase();
   const target = roleStr(targetRole).toLowerCase();
-  
+
   // Admin can moderate everyone except other admins
   if (actor.includes("admin")) {
     return !target.includes("admin");
   }
-  
+
   // Mod can moderate VIP and USER, but not Admin or other Mods
   if (actor.includes("moder")) {
     return !target.includes("admin") && !target.includes("moder");
   }
-  
+
   // VIP and USER cannot moderate anyone
   return false;
 }
@@ -147,12 +152,12 @@ io.on("connection", (socket) => {
     // Spam koruması (Admin ve Moderator hariç)
     const userRole = roleStr(u.role).toLowerCase();
     const isAdminOrMod = userRole.includes("admin") || userRole.includes("moder");
-    
+
     if (!isAdminOrMod && u.userId > 0) {
       const now = Date.now();
       const lastTime = lastMessageTime.get(u.userId) || 0;
       const timeSinceLastMessage = now - lastTime;
-      
+
       if (timeSinceLastMessage < MESSAGE_COOLDOWN_MS) {
         const remainingSeconds = Math.ceil((MESSAGE_COOLDOWN_MS - timeSinceLastMessage) / 1000);
         socket.emit("chat:error", {
@@ -162,7 +167,7 @@ io.on("connection", (socket) => {
         });
         return;
       }
-      
+
       // Son mesaj zamanını güncelle
       lastMessageTime.set(u.userId, now);
     }
